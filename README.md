@@ -1,12 +1,32 @@
-# Project Docs Starter
+# What if…? — 카톡 평행우주 시뮬레이터
 
-이 폴더는 구현 전에 문서 운영체계부터 먼저 세팅하려는 프로젝트용 스타터다.
+해커톤 프로젝트. 카톡 대화 내보내기를 분석해 **어디서 어긋났는지** 찾고 **"그때 이렇게 말했더라면"**을 시뮬레이션합니다.
+
+| 항목 | 위치 |
+|------|------|
+| **앱 (Next.js)** | [`web/`](web/) — `npm run dev` |
+| **정본 PRD** | [`docs/project/prd-what-if.md`](docs/project/prd-what-if.md) |
+| **현재 상태** | [`docs/operations/current-state.md`](docs/operations/current-state.md) |
+| **E2E 시나리오** | [`docs/qa/e2e-scenarios.md`](docs/qa/e2e-scenarios.md) |
+
+```bash
+cd web && cp .env.example .env.local   # OPENROUTER_API_KEY (선택)
+npm install && npm run dev             # http://localhost:3000
+npm run validate                       # 루트 골든 샘플 3종 검증
+```
+
+루트에는 문서 운영 하네스(`AGENTS.md`, 승인 큐, lefthook)와 제품 문서가 함께 있습니다.
+
+---
+
+## Project Docs Starter (하네스)
+
+이 저장소는 문서 우선 운영체계 + 위 제품 앱을 함께 관리합니다.
 
 현재 상태:
-- 코드 없음
-- 이 스타터 폴더 자체는 Git 저장소로 관리 가능
-- 제품 도메인과 MVP 범위 미정
-- 문서 운영체계, 세션 복구 레이어, 검증 자동화 훅이 준비된 템플릿 상태
+- **앱 구현:** `web/` (Phase 1 — P0 기능 완료, 빌드·validate 통과)
+- Git 저장소, lefthook 검증 훅 설치됨
+- 정본 PRD·브리프·todo-plan 동기화됨
 
 문서 언어 정책:
 - 에이전트가 직접 해석해야 하는 운영 문서와 규칙 문서는 영어로 유지

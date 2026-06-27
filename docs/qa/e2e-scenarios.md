@@ -1,48 +1,49 @@
-# E2E Scenario Checklist
+# E2E Scenario Checklist — What if…?
 
-This document is the baseline for auditing real user journeys after the product is defined.
+Baseline user journeys for the hackathon demo. Canonical spec: [prd-what-if.md](../project/prd-what-if.md).
 
-## Current status
-- The product is still undefined, so this doc only provides shared audit axes for now.
+## Scenario 1 — 1:1 money shot (전 연인)
 
-## Common critical scenario axes
+**Entry:** 랜딩 → `KakaoTalkChats (1).txt` 업로드 → "나" = 정래현 선택
 
-### 1. First entry / onboarding
-- How does the user enter for the first time
-- What must be understood on the first screen
-- How is the initial empty state handled
+**Success path:**
 
-### 2. Core value flow
-- Can the user achieve the main goal in one clear flow
-- Are input validation and failure recovery defined
-- Is draft state or retry behavior needed
+1. 파싱 완료: 참가자 2명, one_on_one 모드
+2. 로컬 통계: 타임라인(밀도/답장지연), 세션 위험 마커 표시
+3. "관계 분석 시작" → MAP 진행률 → 헤어진 이유 카드(근거 인용)
+4. 위험 마커 클릭 → 구간 카톡 버블 → "여기서 이렇게 말했더라면"
+5. 반사실 모달: 현실/해피/망함 탭 → 대체 타임라인 카톡 버블
 
-### 3. Create / update / delete
-- Is the post-create state transition clear
-- How are edit conflicts and partial failures handled
-- If deletion exists, are warning and recovery expectations sufficient
+**Failure / recovery:**
 
-### 4. Auth / permissions
-- Is login requirement explicit
-- Are role-based differences defined
-- Is unauthorized access handled in both UX and security terms
+- LLM 키 없음 → 로컬 통계·타임라인·구간 탐색은 동작, AI 분석 안내 배너
+- 429 → 백오프 후 재시도 또는 "잠시 후 다시" 메시지
 
-### 5. Async work / external integrations
-- What state does the user see during delay
-- Is retry or deduplication required
-- Is there a recovery path for integration failures
+**Privacy check:** Network 탭에 원문 파일 업로드 없음; `/api/llm`에 청크만 POST
 
-### 6. Payments / irreversible actions
-- Does the product include payment or irreversible actions
-- Are confirmation and auditability required
-- Is consistency protected after failure
+## Scenario 2 — 그룹 페르소나 + 시뮬 (공돌이들)
 
-### 7. Error / empty state / observability
-- Are empty, loading, and error states all defined
-- Are user-facing messages separated from operator debugging details
-- Are the necessary logs and metrics identified
+**Entry:** CSV 또는 `KakaoTalkChats.txt` 업로드 → "나" 선택
 
-## Actions after product definition
-- Write at least three real scenarios.
-- For each scenario, document entry conditions, success path, failure path, and recovery path.
-- Link the scenario to the related docs and implementation boundaries.
+**Success path:**
+
+1. group 모드, 참가자 5명
+2. "페르소나 분석" → 멤버별 카드(voice, signature, stats)
+3. 시뮬 입력: "야 우리 주말에 한라산 ㄱ?" → realistic/chaos/wholesome → 카톡 스레드 + outcome
+
+## Scenario 3 — 재방문 (IndexedDB)
+
+**Entry:** 이전 분석 완료 후 "기록" → 항목 클릭
+
+**Success path:** 파싱·통계·(있으면) LLM 결과 그대로 복원, 재업로드 없음
+
+**Delete:** 기록 삭제 후 목록에서 제거
+
+## Automated checks (CI/local)
+
+```bash
+cd web && npm run validate   # parser + stats on 3 golden files
+cd web && npm run build      # production build
+```
+
+Golden sample files live at repo root (gitignored); see [web/README.md](../../web/README.md).
