@@ -153,7 +153,7 @@ export default function Home() {
               <PrivacyBadge compact />
               {screen !== "history" && (
                 <Button variant="ghost" size="sm" onClick={() => setScreen("history")}>
-                  🗂️ 기록
+                  기록
                 </Button>
               )}
               <Button variant="ghost" size="sm" onClick={goHome}>

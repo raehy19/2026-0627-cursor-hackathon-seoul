@@ -20,10 +20,10 @@ const TONES: { id: string; text: string }[] = [
   { id: "TMI", text: "나 어제 새벽 4시까지 유튜브 보다가 현타 옴…" },
 ];
 
-const MODES: { id: GroupSimMode; label: string; emoji: string }[] = [
-  { id: "realistic", label: "현실적", emoji: "🙂" },
-  { id: "chaos", label: "카오스", emoji: "🌪️" },
-  { id: "wholesome", label: "화목", emoji: "🥰" },
+const MODES: { id: GroupSimMode; label: string }[] = [
+  { id: "realistic", label: "현실적" },
+  { id: "chaos", label: "카오스" },
+  { id: "wholesome", label: "화목" },
 ];
 
 const OUTCOME_TONE: Record<string, "ok" | "warn" | "danger" | "accent"> = {
@@ -127,7 +127,7 @@ export function GroupSimulator({
                   : "text-muted hover:text-foreground",
               )}
             >
-              {m.emoji} {m.label}
+              {m.label}
             </button>
           ))}
         </div>
@@ -191,7 +191,7 @@ export function GroupSimulator({
 
           <div className="text-right">
             <Button variant="ghost" size="sm" onClick={simulate} disabled={loading}>
-              🔁 다시 시뮬레이션
+              다시 시뮬레이션
             </Button>
           </div>
         </div>

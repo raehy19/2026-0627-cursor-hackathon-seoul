@@ -64,7 +64,9 @@ export function History({
 
       {entries !== null && entries.length === 0 && (
         <div className="card flex flex-col items-center gap-3 p-10 text-center">
-          <span className="text-3xl">🗂️</span>
+          <div className="flex size-12 items-center justify-center rounded-2xl border border-border bg-surface-2 text-sm font-semibold text-muted">
+            0
+          </div>
           <p className="text-sm text-muted">아직 저장된 분석이 없어요.</p>
           <Button onClick={onBack}>첫 분석 시작하기</Button>
         </div>
