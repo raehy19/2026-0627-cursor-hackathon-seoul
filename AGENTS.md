@@ -1,0 +1,137 @@
+# Repository Agent Rules
+
+Canonical entry file for AI assistants in this repository.
+
+> **Single source of truth.** This file is the primary entry document. `CLAUDE.md`,
+> `.cursor/rules/00-entry.mdc`, and any other tool-specific entry files are thin
+> pointers to this document. Do not duplicate rules across entry files.
+>
+> `AGENTS.md` is the cross-tool open standard for agent instructions. Where a tool
+> supports native imports (Claude Code's `@path`, etc.), its entry file should
+> *import* this document rather than restate it, so the canonical rules actually
+> load into context instead of just being linked.
+
+## Start Here
+1. Read [docs/agent/SESSION_START.md](docs/agent/SESSION_START.md) first.
+2. Read [docs/agent/WORKFLOW.md](docs/agent/WORKFLOW.md).
+3. Read [docs/agent/INDEX.md](docs/agent/INDEX.md).
+4. Open only the repo/task doc you need.
+5. Read [docs/DOCUMENTATION_SYSTEM.md](docs/DOCUMENTATION_SYSTEM.md) before changing document ownership or versioning behavior.
+6. For browser or localhost work, read [docs/agent/LOCAL_BROWSER_PROFILES_AND_PORTS.md](docs/agent/LOCAL_BROWSER_PROFILES_AND_PORTS.md).
+7. Before touching any token, key, or `.env` value, read [docs/agent/SECRETS_POLICY.md](docs/agent/SECRETS_POLICY.md).
+
+## Language Policy
+- Agent-facing operating documents must be written in English.
+- Product-facing planning and specification documents may be written in Korean.
+- When a document mixes both concerns, keep the control structure in English and the product content in Korean.
+
+## Documentation-First Rules
+- Read documentation before making meaningful changes.
+- Prefer rules, workflow docs, ADRs, plans, TODOs, and progress docs before broad code reading.
+- If documents conflict, do not guess. Record the conflict in the approval queue.
+- Do not assume assistant-specific files were auto-loaded by another tool.
+
+## Documentation Sync Rules
+- A code change is incomplete if the relevant documentation is not updated.
+- Update documentation immediately when behavior, structure, assumptions, status, risks, or implementation intent changes.
+- Do not leave important decisions or session state only in chat.
+- Do not edit versioned docs in place. Create a new snapshot and archive the old one if the repo uses versioned contract docs.
+
+## Lean Context Rules
+- Do not read large code areas without a reason.
+- Use this order of understanding:
+  1. `docs/agent/SESSION_START.md`
+  2. Repository rules, workflow docs, and index docs
+  3. Architecture docs, ADRs, and active plans
+  4. TODO, current-state, audit, and risk docs
+  5. Targeted code inspection
+- Use the minimum number of skills and workflow layers needed for the task.
+- Do not introduce extra agent scaffolding, plugin layers, or workflow wrappers unless the user explicitly asks.
+- See [docs/agent/WORKFLOW.md](docs/agent/WORKFLOW.md) → "Context Engineering" for how to keep the window lean: progressive disclosure, just-in-time loading, and compaction discipline.
+
+## Approval Rules
+- Document and queue approval before executing:
+  - Large refactors
+  - Architecture shifts
+  - Schema changes
+  - Public API contract changes
+  - Auth or permission behavior changes
+  - Destructive or hard-to-reverse changes
+  - Behavior changes with unclear product intent
+- Resolved approval items must be promoted to an ADR or archived per [docs/operations/approval-queue.md](docs/operations/approval-queue.md).
+
+## Required Operating Outputs
+- [docs/agent/SESSION_START.md](docs/agent/SESSION_START.md)
+- [docs/operations/current-state.md](docs/operations/current-state.md)
+- [docs/operations/todo-plan.md](docs/operations/todo-plan.md)
+- [docs/operations/approval-queue.md](docs/operations/approval-queue.md)
+- [docs/qa/e2e-scenarios.md](docs/qa/e2e-scenarios.md)
+
+## Definition of Done
+
+A task is "done" only when every line below is true. This is the no-false-claims
+rule, made concrete.
+
+- The change is made **and** the docs it affects are updated in the same pass. A
+  code change with stale docs is not done.
+- Every check you report as passing was actually run. Quote or paste the real
+  command output. Never claim a build, test, lint, type-check, or browser check
+  passed from memory.
+- If a required check could not run, state the exact command and the blocker
+  instead of implying success.
+- Decisions or conflicts you uncovered are recorded in the approval queue, not
+  left only in chat.
+- `docs/operations/current-state.md` reflects the new state before the session ends.
+
+## Conventions And Learnings
+- Lightweight, repo-wide conventions live in [docs/learnings/](docs/learnings/README.md).
+- Heavy decisions go to [docs/architecture/adr/](docs/architecture/adr/README.md).
+- The approval queue is the inbox; ADRs are the durable record; learnings are everyday agreements.
+
+## Commit And Release Rules
+- Use [Conventional Commits](https://www.conventionalcommits.org/). See [CONTRIBUTING.md](CONTRIBUTING.md).
+- Release notes are generated by `release-please`. Do not hand-edit release sections of `CHANGELOG.md` once automation runs.
+- Never commit secrets. The `gitleaks` hook will fail the commit if a secret pattern is detected.
+
+## Commands
+
+These short verbs describe operating intents. Each assistant may bind them to native
+slash commands, skills, or custom commands; the semantics are the same across tools.
+
+| Command | Purpose | What it touches |
+|--------|---------|-----------------|
+| `/session-start` | Refresh `SESSION_START.md` from current operating docs | `docs/agent/SESSION_START.md` |
+| `/checkpoint` | Write a Section A–E checkpoint and refresh `current-state.md` | `docs/operations/current-state.md` |
+| `/approval-add <title>` | Append a new approval item with auto-numbered ID | `docs/operations/approval-queue.md` |
+| `/approval-resolve <id>` | Mark an approval as resolved and route it to ADR or archive | `docs/operations/approval-queue.md` |
+| `/promote-to-adr <id>` | Create an ADR from a resolved approval item | `docs/architecture/adr/` |
+| `/learning-add <title>` | Append a lightweight convention/learning | `docs/learnings/` |
+| `/spec-new <title>` | Scaffold a spec document from EARS or Gherkin template | `docs/specs/` |
+| `/spec-tasks <spec>` | Break a **Ready** spec into ordered tasks traced to requirement IDs | `docs/specs/*.tasks.md` |
+
+Claude Code bindings live in `.claude/commands/`. Cursor users can map them via
+`.cursor/commands/` if needed. Codex and other tools can run them as plain
+instructions.
+
+## Verification Layer
+
+This repo enforces several rules automatically. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup.
+- `markdownlint` — markdown formatting consistency
+- `lychee` — internal and external link health
+- `gitleaks` — secret-pattern scanner (commit and CI)
+- `lefthook` — pre-commit and commit-msg gates
+- GitHub Actions workflow `docs-check` mirrors the same checks in CI
+
+## Applying This Harness Elsewhere
+
+If you were pointed at this starter from a *different* working directory and
+asked to apply the harness to that other repository, follow
+[docs/agent/APPLY_HARNESS.md](docs/agent/APPLY_HARNESS.md). It is a four-phase
+playbook (audit → plan → apply → verify) that is conflict-aware: it will
+preserve existing entry files, hooks, commit conventions, ADR folders, and
+release tooling rather than overwrite them.
+
+## Current Repository Phase
+- Do not create application code yet.
+- Lock down product direction and MVP scope in docs first.
+- Keep planning, approval, and E2E scenario docs current until implementation starts.

@@ -1,0 +1,17 @@
+---
+description: Repository entrypoint for Cursor
+globs:
+alwaysApply: true
+---
+
+# Cursor Entry
+
+This file is a thin pointer. The canonical entry document is `AGENTS.md`.
+
+Read in this order at session start:
+1. `AGENTS.md`
+2. `docs/agent/SESSION_START.md`
+3. `docs/agent/WORKFLOW.md`
+4. `docs/agent/INDEX.md`
+
+Do not duplicate rules here. Update `AGENTS.md` instead.

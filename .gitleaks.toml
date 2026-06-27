@@ -1,0 +1,21 @@
+# Gitleaks config. Extends the default ruleset and adds repo-specific allowlist entries.
+# Default rules: https://github.com/gitleaks/gitleaks/blob/master/config/gitleaks.toml
+
+[extend]
+useDefault = true
+
+# Allow obvious docs and templates that may legitimately contain placeholder tokens.
+[[allowlists]]
+description = "Documentation and templates"
+paths = [
+  '''^docs/.*\.md$''',
+  '''^docs/templates/.*\.md$''',
+  '''^README\.md$''',
+  '''^CONTRIBUTING\.md$''',
+  '''^CHANGELOG\.md$''',
+]
+regexes = [
+  '''<[A-Z_]+>''',                     # <YOUR_TOKEN_HERE> style placeholders
+  '''example\.com''',
+  '''xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx''',
+]

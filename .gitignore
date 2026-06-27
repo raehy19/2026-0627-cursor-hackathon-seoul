@@ -1,0 +1,25 @@
+.DS_Store
+.idea/
+.vscode/
+node_modules/
+dist/
+build/
+coverage/
+.next/
+.turbo/
+.cache/
+tmp/
+temp/
+*.log
+.env
+.env.*
+!.env.example
+
+# Lefthook local
+.lefthook-local.yml
+
+# Tool caches
+.lychee/
+.lychee-cache/
+.lycheecache
+.markdownlint-cache/

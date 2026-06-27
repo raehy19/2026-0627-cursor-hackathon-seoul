@@ -1,0 +1,50 @@
+# Lefthook config — language-agnostic git hooks.
+# Install: `brew install lefthook` then `lefthook install`.
+# All commands degrade gracefully: if a tool is missing, the hook skips with a
+# warning rather than blocking the commit.
+
+pre-commit:
+  parallel: true
+  commands:
+    markdownlint:
+      glob: "*.md"
+      run: |
+        if command -v markdownlint >/dev/null 2>&1; then
+          markdownlint --config .markdownlint.json {staged_files}
+        else
+          echo "[lefthook] markdownlint not installed; skipping. Install with: npm i -g markdownlint-cli"
+        fi
+    gitleaks:
+      run: |
+        if command -v gitleaks >/dev/null 2>&1; then
+          gitleaks protect --staged --redact --config .gitleaks.toml
+        else
+          echo "[lefthook] gitleaks not installed; skipping. Install: brew install gitleaks"
+        fi
+    placeholder-guard:
+      glob: "docs/operations/current-state.md"
+      run: |
+        if grep -nE '<YYYY-MM-DD>|<project-name>' {staged_files}; then
+          echo "[lefthook] Placeholder tokens found in staged operations docs."
+          echo "Replace <YYYY-MM-DD> and <project-name> before committing."
+          exit 1
+        fi
+
+commit-msg:
+  commands:
+    conventional-commit:
+      run: |
+        # Allow merge/revert/fixup commits to pass.
+        if grep -qE '^(Merge|Revert|fixup!|squash!)' {1}; then
+          exit 0
+        fi
+        # Conventional Commits regex.
+        # type(scope)!: subject
+        if ! grep -qE '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9_\-\.\/]+\))?!?: .+' {1}; then
+          echo "[lefthook] Commit message does not follow Conventional Commits."
+          echo "Examples:"
+          echo "  feat(specs): add EARS template"
+          echo "  fix: correct broken link in INDEX"
+          echo "  docs(agent): clarify session start order"
+          exit 1
+        fi

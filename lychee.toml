@@ -1,0 +1,30 @@
+# Lychee link checker config. https://lychee.cli.rs/
+
+# Verify both internal and external links.
+include_verbatim = false
+# Check link fragments (#anchors). lychee >= 0.24 takes an enum, not a bool:
+# "none" | "anchor-only" | "text-only" | "full".
+include_fragments = "full"
+
+# Treat any 4xx/5xx as an error.
+accept = [200, 206, 301, 302, 303, 304, 307, 308]
+
+# Reasonable timeout for external sites.
+timeout = 20
+max_redirects = 5
+max_concurrency = 16
+
+# Skip mailto and ephemeral hosts that are not safe to hit from CI.
+exclude_path = [".git", "node_modules"]
+exclude = [
+  '^mailto:',
+  '^tel:',
+  '^https?://localhost',
+  '^https?://127\.0\.0\.1',
+  '^https?://0\.0\.0\.0',
+  '^https?://[^/]*\.local',
+]
+
+# Cache results to keep repeat runs fast.
+cache = true
+max_cache_age = "7d"
