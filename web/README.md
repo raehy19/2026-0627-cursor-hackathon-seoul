@@ -2,6 +2,8 @@
 
 카톡 대화 내보내기 → 로컬 통계 + LLM/에이전트 분석 → 타임라인 · 리포트 · 반사실 · 단톡 시뮬.
 
+**Production:** [https://whatif.raehyeon.com/](https://whatif.raehyeon.com/)
+
 정본 PRD: [docs/project/prd-what-if.md](../docs/project/prd-what-if.md)
 
 ## 빠른 시작
@@ -63,6 +65,7 @@ src/app/api/llm/      OpenRouter 서버 프록시 (원문 저장 없음)
 
 ## 배포 (Vercel)
 
+- **Production:** [https://whatif.raehyeon.com/](https://whatif.raehyeon.com/)
 - Root Directory: `web`
-- Environment: `OPENROUTER_API_KEY` (선택), `NEXT_PUBLIC_MOCK_LLM=false`
+- Environment: `OPENROUTER_API_KEY` (선택), `NEXT_PUBLIC_MOCK_LLM=false`, `NEXT_PUBLIC_SITE_URL=https://whatif.raehyeon.com`
 - Health: `GET /api/llm/health`

@@ -21,7 +21,7 @@ Living plan. Canonical spec: [prd-what-if.md](../project/prd-what-if.md).
 
 ## P1 — if time
 
-- [ ] Vercel deploy (root dir `web`)
+- [x] Vercel deploy — [whatif.raehyeon.com](https://whatif.raehyeon.com/) (root dir `web`)
 - [ ] Shareable result card
 
 ## User action

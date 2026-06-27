@@ -2,6 +2,8 @@
 
 카톡 대화 내보내기를 분석해 **어디서 어긋났는지** 찾고 **"그때 이렇게 말했더라면"**을 시뮬레이션합니다.
 
+**Live:** [https://whatif.raehyeon.com/](https://whatif.raehyeon.com/)
+
 ## 빠른 시작
 
 ```bash
