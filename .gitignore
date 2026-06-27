@@ -15,6 +15,13 @@ temp/
 .env.*
 !.env.example
 
+# Personal KakaoTalk exports used as local golden samples (never commit real chat data)
+KakaoTalk*.txt
+KakaoTalk*.csv
+KakaoTalkChats*.txt
+*카카오톡*.txt
+/web/public/samples/
+
 # Lefthook local
 .lefthook-local.yml
 
