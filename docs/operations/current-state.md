@@ -1,106 +1,51 @@
 # Current State / Session Recovery
 
-Last updated:
-- 2026-06-27
+Last updated: 2026-06-27
 
-## Current Phase
-- Phase 1. Implementation started — "What if…?" KakaoTalk analyzer (hackathon, 3h build).
-- Product direction locked via the PRD; see `docs/project/product-brief.md`.
-- App lives in `web/` (Next.js 16 App Router, src/). Root `docs/` keeps the governance harness.
+## Phase
 
-## What is being built (2026-06-27)
-- "What if…?" — upload a KakaoTalk export → local stats + LLM analysis. Two modes by participant count: 1:1 (회고형 + counterfactual) and group (페르소나 + 단톡방 시뮬).
-- No DB. IndexedDB local only. Thin `/api/llm` proxy to OpenRouter free models. Privacy = feature.
-- Stack: Next.js 16, React 19, Tailwind v4, papaparse, idb-keyval, recharts. Deploy target Vercel (root dir `web`).
+Phase 1 — **What if…?** app in `web/`. Hackathon build; PRD is canonical.
 
-## Build status (2026-06-27, checkpoint 4)
+## Product summary
 
-- **P1.5 UX polish shipped:** Three.js landing hero · no-emoji UI · 관계 온도계 · 밀도 급락 밴드 · 반사실 split · MAP segment streaming reveal · risky quote card.
-- **Build:** `npm run build` green after P1.5.
-- **Next:** LLM smoke test · demo IndexedDB cache · Vercel deploy.
+Upload KakaoTalk export → parse + local stats → analyze via **OpenRouter** or **coding-agent JSON import** → 1:1 report/timeline/counterfactual or group personas/sim. All user data stays in IndexedDB; server is LLM proxy only.
 
-## Build status (2026-06-27, checkpoint 3)
+## Latest (2026-06-27)
 
-- **P0 complete:** `web/` committed in module chunks; build + validate green; dev on `:3001` (3000 occupied).
-- **Plan update:** PRD §9.1 (P1.5 UX polish) + §12 (token/call budget) added from review session.
-- **Next (doc-first):** P1.5 UX polish → LLM smoke test → demo IndexedDB cache → optional Vercel deploy.
+- **Dual analysis UI:** `AnalysisRunPanel` — OpenRouter + agent bundle/copy/import
+- **Agent pipeline:** `web/src/lib/agent/*`, `web/public/agent/ANALYSIS.md`
+- **Data hygiene:** real exports moved to `data/chat-exports/` (gitignored); only README tracked
+- **Docs trimmed:** starter harness bloat removed; root + web README rewritten
+- **Build:** `npm run build` green (prior session)
+- **Not committed yet:** agent analysis work + doc cleanup still local
 
-## Build status (2026-06-27, checkpoint 2)
+## Repo layout
 
-- **Done:** full `web/` app — parser · stats · LLM · UI · IndexedDB · `npm run build` green · `npm run validate` ALL PASSED.
-- **Committed:** `feat(web|parser|stats|llm|ui)` + docs checkpoint commits.
+```text
+web/                 app
+data/chat-exports/   private Kakao exports (gitignored)
+docs/project/        PRD
+docs/operations/     state · todo · approval
+docs/qa/             E2E
+docs/agent/          agent ops (SESSION_START, WORKFLOW, …)
+```
 
-## Build status (2026-06-27, checkpoint 1)
-- Done: scaffold (`web/`), deps installed, shared contracts (`web/src/lib/types.ts`), skeletons, `globals.css` (kakao bubbles + theme), `layout.tsx`, `.env.example`/`.env.local` (key empty — user fills `OPENROUTER_API_KEY`).
-- Validated all 3 real sample files at repo root: CSV BOM, U+202F separator in txt, 4,414 records != 4,484 lines, group=5 people, 1:1=[정래현, 서연이].
-- In progress (parallel agents): A = parser+stats (`lib/parser`,`lib/stats`); B = LLM (`app/api/llm`,`lib/llm`); C = UI+store (`page.tsx`,`components`,`lib/store`).
-- Next: integrate, `next build`, test against real files, cache one demo analysis.
+## Next
 
-## Repository Status (2026-06-27)
-- Application code now lives under `web/` (Next.js). Governance harness stays at root.
-- Git-initialized on `master`. Verification hooks installed locally (`lefthook install`).
-- `AGENTS.md` is the canonical entry; `CLAUDE.md` and `.cursor/rules/00-entry.mdc` are thin pointers.
+- [ ] Git commit + push pending changes
+- [ ] OpenRouter smoke test with real key
+- [ ] Vercel deploy (root dir `web`)
 
-## History (pre-implementation harness work)
-- Created from the documentation starter; operating-document baseline in place.
+## Validation
 
-## Completed in the 2026-06-14 pass
-- Fixed the Claude Code import gap: `CLAUDE.md` now uses native `@AGENTS.md` + `@docs/agent/SESSION_START.md` imports so canonical rules actually load into context (a Markdown link does not auto-load)
-- Added the spec → tasks bridge: `docs/templates/tasks-template.md` + `/spec-tasks` command, tracing each task to an EARS/Gherkin requirement ID; updated specs lifecycle to a `Tasked` stage
-- Added an explicit `## Definition of Done` to `AGENTS.md` (no-false-claims + doc-sync made concrete)
-- Added a `Context Engineering`, `External Memory And Resume`, and opt-in tooling section to `WORKFLOW.md`
-- Turned the secrets policy into a guardrail: minimal `.claude/settings.json` `permissions.deny` for `.env*`/keys/PEM + `ask` on force-push
-- Added `.mcp.json.example` (Supabase + chrome-devtools) with env-var token expansion, documented in `SECRETS_POLICY.md`
-- Upgraded `LOCAL_BROWSER_PROFILES_AND_PORTS.md` with a lane registry, suggested port ranges, and a collision checklist
-- Propagated all of the above into `APPLY_HARNESS.md`, `INDEX.md`, `README.md`, and the templates index
+```bash
+cd web && npm run validate   # needs files in data/chat-exports/
+cd web && npm run build
+```
 
-## Completed in the 2026-05-03 pass
-- Standardized on `AGENTS.md` as the canonical entry, slimmed other entry files to pointers
-- Added local + CI verification: `lefthook.yml`, `.markdownlint.json`, `lychee.toml`, `.gitleaks.toml`, `.github/workflows/docs-check.yml`
-- Added `docs/agent/SESSION_START.md` as the one-page session snapshot
-- Added Claude slash commands under `.claude/commands/` (`session-start`, `checkpoint`, `approval-add`, `approval-resolve`, `promote-to-adr`, `learning-add`, `spec-new`)
-- Added `docs/specs/` with EARS and Gherkin templates
-- Added approval-queue lifecycle (open → resolved → routed) with archive section
-- Added Conventional Commits enforcement (`commit-msg` hook + `.gitmessage`) and `release-please` workflow + config
-- Added `degit` / `gh repo create --template` quick-start to `README.md`
-- Added `docs/learnings/` with category structure and template
-- Added `docs/agent/SECRETS_POLICY.md` and an MCP permission matrix
-- Added `docs/agent/APPLY_HARNESS.md`: conflict-aware playbook for applying this harness to an existing repo (audit → plan → apply → verify), expanded to cover the full operating discipline (core principles, governance, agent workflow/index, operating docs, taxonomy folders, templates, verification, commands, commits/release, secrets, browser/lane policy) and a doc-taxonomy cheat sheet
-- Extended `README.md` with first-prompt examples, cross-repo application instructions, and a slash command catalog
-- Updated `WORKFLOW.md`, `INDEX.md`, `CONTRIBUTING.md`, `DOCUMENTATION_SYSTEM.md`, `docs/README.md` to reflect the new layout
+## Links
 
-## Confirmed Operating Principles
-- Documentation comes before implementation
-- Unclear items go to the approval queue and are routed (ADR or learning) on resolve
-- Session-recovery state lives in repository docs
-- Technical decisions stay open until product scope is defined
-- Formal status reports are optional and belong in `docs/status/`
-
-## Critical Unknowns
-- Problem to solve
-- Target users
-- Core user flows
-- MVP scope
-- Tech stack
-- Platform scope
-- License decision
-
-## Read These First Next Time
-- [AGENTS.md](../../AGENTS.md)
-- [docs/agent/SESSION_START.md](../agent/SESSION_START.md)
-- [docs/operations/todo-plan.md](todo-plan.md)
-- [docs/operations/approval-queue.md](approval-queue.md)
-- [docs/project/product-brief.md](../project/product-brief.md)
-
-## Next Safe Actions
-- Reflect the product idea into the product brief
-- Resolve approval-queue items 1–5 with the user, then route via `/promote-to-adr` or `/learning-add`
-- Turn the E2E checklist into concrete user journeys
-- Decide whether and how to bootstrap the repository
-- For the first feature, scaffold a spec via `/spec-new`
-- If copied into a new project, remove inherited Git metadata and re-initialize the repo
-
-## Notes
-- This file should be updated at the end of each real work session.
-- Replace placeholders as soon as the product direction becomes clearer.
-- This file is the living recovery log. Use `docs/status/` only for milestone, handoff, or explicitly requested status reporting.
+- [PRD](../project/prd-what-if.md)
+- [TODO](todo-plan.md)
+- [E2E](../qa/e2e-scenarios.md)
+- [web README](../../web/README.md)

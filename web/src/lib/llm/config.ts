@@ -49,3 +49,8 @@ export const RETRY = {
   tries: 3,
   baseMs: 800,
 } as const;
+
+/** When true, browser uses local heuristic mockEngine instead of /api/llm (no OpenRouter). */
+export const USE_MOCK_LLM =
+  typeof process !== "undefined" &&
+  process.env.NEXT_PUBLIC_MOCK_LLM === "true";

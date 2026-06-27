@@ -8,13 +8,7 @@ Every approval item moves through these states:
 
 1. **open** — appended via `/approval-add`. Waiting for a decision.
 2. **resolved** — the user has decided. Record `Decision:` and `Resolved:` date.
-3. **routed** — moved out of the active list:
-   - **High-impact** → promoted to an ADR via `/promote-to-adr <id>`. The
-     resolved item gets a `Promoted to docs/architecture/adr/<file>.md` line and
-     is moved to the archive section below.
-   - **Low-impact** → captured as a one-line entry in `docs/learnings/` and
-     moved to the archive section below.
-   - **Dropped** → no longer relevant. State `Decision: dropped` with a reason.
+3. **routed** — moved out of the active list with `Decision:` recorded in this archive section, or noted in PRD / `current-state.md` for high-impact choices.
 
 Resolved items must not stay in the active list. The active list is only for
 **open** decisions.

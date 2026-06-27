@@ -15,11 +15,13 @@ function hasValidExt(name: string): boolean {
 
 export function Upload({
   onFile,
+  onQuickStart,
   hasHistory,
   historyCount,
   onOpenHistory,
 }: {
   onFile: (file: File) => void;
+  onQuickStart?: () => void;
   hasHistory: boolean;
   historyCount: number;
   onOpenHistory: () => void;
@@ -50,21 +52,21 @@ export function Upload({
     <div className="relative min-h-[100dvh]">
       <LandingHeroBackground />
 
-      <div className="relative mx-auto w-full max-w-2xl px-5 pb-16 pt-[min(28vh,220px)] sm:pt-[min(32vh,260px)]">
+      <div className="relative mx-auto w-full max-w-3xl px-5 pb-16 pt-[min(28vh,220px)] sm:pt-[min(32vh,260px)]">
         <div className="text-center">
           <span className="inline-flex items-center rounded-full border border-border/80 bg-surface/80 px-3 py-1 text-xs tracking-wide text-muted backdrop-blur-sm">
-            평행우주 · 카톡 회고
+            카톡 한 통으로 · 관계 회고
           </span>
           <h1 className="mt-5 bg-gradient-to-r from-accent via-accent-2 to-accent bg-clip-text text-6xl font-black tracking-tight text-transparent sm:text-7xl">
             What if…?
           </h1>
           <p className="mt-4 text-balance text-lg text-foreground/95">
-            그때 이렇게 말했더라면, 우리 사이는 달라졌을까?
+            그때 한마디만 달랐다면, 우리는 다른 결말이었을까?
           </p>
           <p className="mt-2 text-sm text-muted">
-            카톡 대화를 넣으면 어디서 어긋났는지 찾아내고,
+            카톡 내보내기 파일 하나로 어긋난 순간을 찾고,
             <br className="hidden sm:block" />
-            다른 선택이었을 평행우주를 카톡 그대로 보여줍니다.
+            다른 선택이었을 평행우주를 그대로 재현합니다.
           </p>
         </div>
 
@@ -110,9 +112,9 @@ export function Upload({
             </svg>
           </div>
           <p className="text-base font-semibold text-foreground">
-            여기로 카톡 파일을 끌어다 놓으세요
+            카톡 파일 올리고 바로 분석받기
           </p>
-          <p className="mt-1 text-sm text-muted">또는 클릭해서 파일 선택</p>
+          <p className="mt-1 text-sm text-muted">끌어다 놓거나 클릭해서 선택</p>
           <div className="mt-4 flex items-center gap-2">
             <Chip>.txt</Chip>
             <Chip>.csv</Chip>
@@ -131,6 +133,17 @@ export function Upload({
         )}
 
         <PrivacyBadge className="mt-6" />
+
+        {onQuickStart && (
+          <div className="mt-6 text-center">
+            <Button variant="primary" size="lg" onClick={onQuickStart}>
+              바로 분석받기
+            </Button>
+            <p className="mt-2 text-xs text-muted">
+              파일 없이 결과 화면부터 확인할 수 있어요.
+            </p>
+          </div>
+        )}
 
         <div className="mt-4">
           <button

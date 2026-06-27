@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { runOneOnOneAnalysis } from "@/lib/llm/client";
+import { useMemo, useState } from "react";
+import { mockAnalyzeSegment } from "@/lib/llm/mockEngine";
 import type {
   PersonStats,
   SegmentAnalysis,
   Session,
   StoredAnalysis,
 } from "@/lib/types";
+import { AnalysisRunPanel } from "@/components/AnalysisRunPanel";
 import { Timeline } from "@/components/Timeline";
 import { SessionModal } from "@/components/SessionModal";
 import { CounterfactualModal } from "@/components/CounterfactualModal";
@@ -19,20 +20,15 @@ import {
   pct,
 } from "@/components/format";
 import {
-  Button,
   Chip,
-  Notice,
   SectionTitle,
-  Spinner,
   Stat,
 } from "@/components/ui";
-import { ProgressBar } from "@/components/ProgressBar";
 import {
   RelationshipGauge,
   computeRelationshipScore,
 } from "@/components/RelationshipGauge";
 import { RiskyQuoteCard } from "@/components/RiskyQuoteCard";
-import { SegmentRevealList } from "@/components/SegmentRevealList";
 
 function PersonCompare({
   me,
@@ -90,24 +86,9 @@ export function Dashboard1on1({
   data: StoredAnalysis;
   onChange: (next: StoredAnalysis) => void;
 }) {
-  const [runState, setRunState] = useState<
-    "idle" | "running" | "done" | "error"
-  >(data.overview ? "done" : "idle");
-  const [progress, setProgress] = useState<{
-    done: number;
-    total: number;
-    label?: string;
-  }>({ done: 0, total: 0 });
-
   const [selected, setSelected] = useState<Session | null>(null);
   const [cfSegment, setCfSegment] = useState<SegmentAnalysis | null>(null);
-
-  const abortRef = useRef<AbortController | null>(null);
-  const dataRef = useRef(data);
-  dataRef.current = data;
-  useEffect(() => {
-    return () => abortRef.current?.abort();
-  }, []);
+  const [cfAltLine, setCfAltLine] = useState<string | undefined>();
 
   const segBySession = useMemo(() => {
     const map: Record<string, SegmentAnalysis> = {};
@@ -138,101 +119,25 @@ export function Dashboard1on1({
     [data.segments, data.stats.sessions],
   );
 
-  async function runAnalysis() {
-    const ac = new AbortController();
-    abortRef.current = ac;
-    setRunState("running");
-    setProgress({ done: 0, total: 0, label: "분석 준비 중…" });
-    onChange({ ...dataRef.current, segments: [], overview: undefined });
-    try {
-      const { segments, overview } = await runOneOnOneAnalysis(
-        dataRef.current.parseResult,
-        dataRef.current.stats,
-        dataRef.current.me,
-        {
-          signal: ac.signal,
-          onProgress: (done, total, label) => setProgress({ done, total, label }),
-          onSegment: (seg) => {
-            const base = dataRef.current;
-            const next = {
-              ...base,
-              segments: [...(base.segments ?? []), seg],
-            };
-            dataRef.current = next;
-            onChange(next);
-          },
-        },
-      );
-      const final = { ...dataRef.current, segments, overview };
-      dataRef.current = final;
-      onChange(final);
-      setRunState("done");
-    } catch {
-      setRunState("error");
-    }
-  }
-
   const overview = data.overview;
-  const selectedSegment = selected ? segBySession[selected.id] : undefined;
+  const selectedSegment = useMemo(() => {
+    if (!selected) return undefined;
+    const mapped = segBySession[selected.id];
+    if (mapped) return mapped;
+    if (data.overview) {
+      return mockAnalyzeSegment(data.parseResult, selected, data.me);
+    }
+    return undefined;
+  }, [selected, segBySession, data.overview, data.parseResult, data.me]);
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-6 px-4 py-6">
-      {/* run control */}
-      {runState !== "done" && (
-        <div className="card p-5">
-          {runState === "idle" && (
-            <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-base font-semibold text-foreground">
-                  AI 관계 분석
-                </p>
-                <p className="text-sm text-muted">
-                  위험했던 구간을 짚어 어디서 어긋났는지, 무엇을 바꿀 수 있었는지
-                  찾아드려요.
-                </p>
-              </div>
-              <Button onClick={runAnalysis}>관계 분석 시작</Button>
-            </div>
-          )}
-          {runState === "running" && (
-            <div>
-              <div className="mb-2 flex items-center gap-2 text-sm text-foreground">
-                <Spinner /> 구간을 하나씩 읽는 중…
-              </div>
-              <ProgressBar
-                done={progress.done}
-                total={progress.total}
-                label={
-                  progress.label
-                    ? `구간 분석 ${progress.done}/${progress.total} — ${progress.label}`
-                    : "분석 중…"
-                }
-              />
-            </div>
-          )}
-          {runState === "error" && (
-            <div className="space-y-3">
-              <Notice tone="warn" title="AI 분석 대기 중">
-                LLM 키가 설정되면 AI 관계 분석이 활성화됩니다. 그 전에도 아래
-                타임라인과 실제 대화, 로컬 통계는 모두 사용할 수 있어요.
-              </Notice>
-              <Button variant="ghost" onClick={runAnalysis}>
-                다시 시도
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* streamed segments while running */}
-      {runState === "running" && (data.segments?.length ?? 0) > 0 && (
-        <SegmentRevealList segments={data.segments ?? []} />
-      )}
-      {runState === "running" && (data.segments?.length ?? 0) === 0 && (
-        <p className="text-center text-xs text-muted">
-          분석 결과가 준비되는 대로 여기에 나타납니다…
-        </p>
-      )}
+    <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+      <AnalysisRunPanel
+        data={data}
+        onChange={onChange}
+        kind="one_on_one"
+        ready={!!data.overview}
+      />
 
       <RelationshipGauge score={relationshipScore} />
 
@@ -243,9 +148,9 @@ export function Dashboard1on1({
       {/* overview (LLM) */}
       {overview && (
         <section className="card p-5">
-          <SectionTitle hint="AI가 정리한 관계의 흐름">관계 리포트</SectionTitle>
+          <SectionTitle hint="6개월 대화에서 짚어낸 관계의 흐름">관계 리포트</SectionTitle>
           {overview.relationship_arc && (
-            <p className="mb-4 text-sm leading-relaxed text-foreground">
+            <p className="mb-5 text-base leading-relaxed text-foreground">
               {overview.relationship_arc}
             </p>
           )}
@@ -360,8 +265,12 @@ export function Dashboard1on1({
           segment={selectedSegment}
           parse={data.parseResult}
           me={data.me}
-          onOpenCounterfactual={() => {
-            if (selectedSegment) setCfSegment(selectedSegment);
+          analysisReady={!!data.overview}
+          onOpenCounterfactual={(alt) => {
+            if (selectedSegment) {
+              setCfAltLine(alt);
+              setCfSegment(selectedSegment);
+            }
           }}
         />
       )}
@@ -369,7 +278,11 @@ export function Dashboard1on1({
       {cfSegment && (
         <CounterfactualModal
           open={!!cfSegment}
-          onClose={() => setCfSegment(null)}
+          onClose={() => {
+            setCfSegment(null);
+            setCfAltLine(undefined);
+          }}
+          initialAlternativeLine={cfAltLine}
           parse={data.parseResult}
           stats={data.stats}
           me={data.me}

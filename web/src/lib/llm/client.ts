@@ -12,8 +12,19 @@ import type {
   SegmentAnalysis,
   Session,
 } from "@/lib/types";
-import { LLM_CONCURRENCY, MAP_CHAR_BUDGET } from "@/lib/llm/config";
+import { LLM_CONCURRENCY, MAP_CHAR_BUDGET, USE_MOCK_LLM } from "@/lib/llm/config";
+import {
+  clampLinesToBudget,
+  formatLines,
+  stratifiedSample,
+} from "@/lib/llm/formatLines";
 import { callLLMJson, LlmError, LlmUnavailableError } from "@/lib/llm/json";
+import {
+  mockCounterfactual,
+  mockExtractPersonas,
+  mockGroupSim,
+  mockRunOneOnOneAnalysis,
+} from "@/lib/llm/mockEngine";
 import {
   buildCounterfactualPrompt,
   buildGroupSimPrompt,
@@ -24,9 +35,16 @@ import {
 
 export type ProgressCb = (done: number, total: number, label?: string) => void;
 export type SegmentCb = (segment: SegmentAnalysis) => void;
+export type AnalysisSource = "auto" | "openrouter" | "mock";
 
 // Re-exported so the UI can `catch` proxy/availability failures from one place.
 export { LlmUnavailableError, LlmError };
+
+function useMockLlm(source?: AnalysisSource): boolean {
+  if (source === "openrouter") return false;
+  if (source === "mock") return true;
+  return USE_MOCK_LLM;
+}
 
 /**
  * Browser-side LLM orchestration. Calls the /api/llm proxy with a map-reduce
@@ -37,89 +55,6 @@ export { LlmUnavailableError, LlmError };
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
-
-function pad2(n: number): string {
-  return String(n).padStart(2, "0");
-}
-
-function fmtDateTime(ts: number): string {
-  const d = new Date(ts);
-  return `${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
-}
-
-function humanizeDelay(sec: number): string {
-  if (sec < 60) return `${sec}초`;
-  const min = Math.round(sec / 60);
-  if (min < 60) return `${min}분`;
-  const hr = Math.round(min / 60);
-  if (hr < 24) return `${hr}시간`;
-  return `${Math.round(hr / 24)}일`;
-}
-
-function renderText(m: Msg): string {
-  if (m.isMedia) {
-    const t = m.text?.trim();
-    return t ? `«${t}»` : "«미디어»";
-  }
-  if (m.isUrl) return "«링크»";
-  return m.text ?? "";
-}
-
-/**
- * Format messages as lines:
- *   "[MM-DD HH:MM] sender(나): text  (답장지연 Ns)"
- * Latency is annotated only when the sender differs from the previous rendered
- * message (i.e. an actual reply). System messages are skipped from the text.
- * Pass `me=""` to disable the (나) marker (e.g. single-person persona samples).
- */
-function formatLines(msgs: Msg[], me: string): string[] {
-  const lines: string[] = [];
-  let prev: Msg | null = null;
-  for (const m of msgs) {
-    if (m.isSystem) continue;
-    const who = me && m.sender === me ? `${m.sender}(나)` : m.sender;
-    let line = `[${fmtDateTime(m.ts)}] ${who}: ${renderText(m)}`;
-    if (prev && prev.sender !== m.sender) {
-      const delaySec = Math.max(0, Math.round((m.ts - prev.ts) / 1000));
-      line += `  (답장지연 ${humanizeDelay(delaySec)})`;
-    }
-    lines.push(line);
-    prev = m;
-  }
-  return lines;
-}
-
-/** Keep head + tail within a char budget, eliding the middle. */
-function clampLinesToBudget(lines: string[], maxChars: number): string {
-  const joined = lines.join("\n");
-  if (joined.length <= maxChars) return joined;
-
-  const head: string[] = [];
-  const tail: string[] = [];
-  let used = 0;
-  let i = 0;
-  let j = lines.length - 1;
-  let takeHead = true;
-  const reserve = 32; // for the elision marker
-  const budget = Math.max(0, maxChars - reserve);
-
-  while (i <= j) {
-    const line = takeHead ? lines[i] : lines[j];
-    if (used + line.length + 1 > budget) break;
-    used += line.length + 1;
-    if (takeHead) {
-      head.push(line);
-      i++;
-    } else {
-      tail.unshift(line);
-      j--;
-    }
-    takeHead = !takeHead;
-  }
-  const omitted = j - i + 1;
-  const marker = omitted > 0 ? `\n... (중략 ${omitted}개 메시지) ...\n` : "\n";
-  return head.join("\n") + marker + tail.join("\n");
-}
 
 /** Run `fn` over items with a fixed concurrency cap; preserves input order. */
 async function mapPool<I, O>(
@@ -191,23 +126,6 @@ function buildStatsSummary(stats: DerivedStats, me: string, them: string): strin
   });
 }
 
-/** Recent-weighted sample of one person's messages, capped at `cap`. */
-function stratifiedSample(messages: Msg[], name: string, cap: number): Msg[] {
-  const mine = messages.filter((m) => m.sender === name && !m.isSystem);
-  if (mine.length <= cap) return mine;
-  const recentCount = Math.floor(cap * 0.6);
-  const olderCount = cap - recentCount;
-  const recent = mine.slice(mine.length - recentCount);
-  const olderPool = mine.slice(0, mine.length - recentCount);
-  const step = olderPool.length / Math.max(1, olderCount);
-  const older: Msg[] = [];
-  for (let k = 0; k < olderCount; k++) {
-    const m = olderPool[Math.floor(k * step)];
-    if (m) older.push(m);
-  }
-  return [...older, ...recent];
-}
-
 function personaStatsBlock(ps?: PersonStats): PersonaCard["stats"] {
   return {
     avg_len: Math.round(ps?.avgLen ?? 0),
@@ -231,8 +149,13 @@ export async function runOneOnOneAnalysis(
     onProgress?: ProgressCb;
     onSegment?: SegmentCb;
     signal?: AbortSignal;
+    source?: AnalysisSource;
   },
 ): Promise<{ segments: SegmentAnalysis[]; overview: Overview }> {
+  if (useMockLlm(opts?.source)) {
+    return mockRunOneOnOneAnalysis(parse, stats, me, opts);
+  }
+
   const maxSegments = opts?.maxSegments ?? 8;
   const onProgress = opts?.onProgress;
   const onSegment = opts?.onSegment;
@@ -295,7 +218,13 @@ export async function runCounterfactual(
   me: string,
   segment: SegmentAnalysis,
   mode: CfMode,
+  opts?: { alternativeLine?: string },
 ): Promise<Counterfactual> {
+  if (USE_MOCK_LLM) {
+    await new Promise((r) => setTimeout(r, 150));
+    return mockCounterfactual(parse, segment, me, mode, opts?.alternativeLine);
+  }
+
   const them = otherParticipant(parse, me);
   const session = stats.sessions.find((s) => s.id === segment.segment_id);
 
@@ -318,6 +247,7 @@ export async function runCounterfactual(
     riskyMoments: segment.risky_moments ?? [],
     contextLines,
     lines,
+    alternativeLine: opts?.alternativeLine,
   });
 
   const temperature = mode === "disaster" ? 0.95 : mode === "best_case" ? 0.8 : 0.7;
@@ -335,8 +265,12 @@ export async function runCounterfactual(
 export async function extractPersonas(
   parse: ParseResult,
   stats: DerivedStats,
-  opts?: { onProgress?: ProgressCb; signal?: AbortSignal },
+  opts?: { onProgress?: ProgressCb; signal?: AbortSignal; source?: AnalysisSource },
 ): Promise<PersonaCard[]> {
+  if (useMockLlm(opts?.source)) {
+    return mockExtractPersonas(parse, stats, opts);
+  }
+
   const onProgress = opts?.onProgress;
   const signal = opts?.signal;
   const participants = parse.participants;
@@ -376,6 +310,11 @@ export async function runGroupSim(
   trigger: string,
   opts: { mode: GroupSimMode; hour?: number; me: string },
 ): Promise<GroupSimResult> {
+  if (USE_MOCK_LLM) {
+    await new Promise((r) => setTimeout(r, 120));
+    return mockGroupSim(personas, trigger, opts.me, opts.mode);
+  }
+
   const { mode, hour, me } = opts;
   const responders = personas.filter((p) => p.name !== me);
   const contextLines = clampLinesToBudget(formatLines(contextMsgs, me), 2500);

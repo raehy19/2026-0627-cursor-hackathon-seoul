@@ -15,7 +15,7 @@
 - 최종 갱신: 2026-06-27 (checkpoint 3 — UX polish plan + token budget).
 - 드리프트 정책: 계획 변경이 필요하면 **이 문서를 먼저 수정하고 커밋**한 뒤 코드를 변경한다. 코드가 문서와 어긋나면 이 문서를 정본으로 본다.
 - 구현 위치: `web/` (Next.js App Router). 운영/거버넌스 문서는 루트 `docs/`.
-- 관련 문서: [product-brief](product-brief.md) · [current-state](../operations/current-state.md) · [todo-plan](../operations/todo-plan.md).
+- 관련 문서: [current-state](../operations/current-state.md) · [todo-plan](../operations/todo-plan.md) · [web/README](../../web/README.md).
 
 ---
 
@@ -425,7 +425,7 @@ type StoredAnalysis = {
 
 **순서 (막히면 뒤 기능은 버려도 데모 성립):**
 
-1. **0:00–0:30** 파서 + 로컬 통계. **맥OS CSV 경로(papaparse) 먼저** — 가장 쉬움. 첨부 `공돌이들.csv`로 즉시 검증. 그다음 안드로이드 txt 경로(전처리 3종 §4.3 필수). 두 골든 샘플 다 첨부돼 있음.
+1. **0:00–0:30** 파서 + 로컬 통계. **맥OS CSV 경로(papaparse) 먼저** — 가장 쉬움. `data/chat-exports/` 골든 CSV로 즉시 검증. 그다음 안드로이드 txt 경로(전처리 3종 §4.3 필수).
 2. **0:30–1:00** `/api/llm` 프록시 + `openrouter/free` 콜 1개 뚫기. JSON 방어 파싱 헬퍼.
 3. **1:00–1:45** (모드에 따라) 1:1=MAP→REDUCE 파이프라인 / 그룹=페르소나 추출(§5B.1) + 카톡 버블 UI.
 4. **1:45–2:30** the money shot — 1:1 반사실(§7.3) **또는** 그룹 시뮬(§5B.2). 데모용 모드 하나에 시간 최우선 배분.
@@ -435,7 +435,7 @@ type StoredAnalysis = {
 
 ## 11. 리스크 & 주의
 
-- **포맷 변형(최대 함정, 실측 확인):** 맥OS=CSV, 모바일/PC=txt로 완전히 다름. **안드로이드는 폰 언어에 따라 한글/영문 포맷이 또 갈림**(실측 파일은 영문). CSV는 papaparse로 쉬움. txt는 ① BOM ② CRLF→LF ③ **U+202F→공백** 전처리 안 하면 매치율 0% — 이 셋이 진짜 지뢰. 첨부 `공돌이들.csv` + `KakaoTalkChats.txt` 둘 다 골든 샘플로.
+- **포맷 변형(최대 함정, 실측 확인):** 맥OS=CSV, 모바일/PC=txt로 완전히 다름. **안드로이드는 폰 언어에 따라 한글/영문 포맷이 또 갈림**(실측 파일은 영문). CSV는 papaparse로 쉬움. txt는 ① BOM ② CRLF→LF ③ **U+202F→공백** 전처리 안 하면 매치율 0% — 이 셋이 진짜 지뢰. 골든 샘플은 `data/chat-exports/` (gitignore).
 - **파일 규모:** 실측 안드 export가 **23MB·38만 줄·5.7년치**. 통컨텍스트 절대 불가 → 통계 선분석(§5) + 청킹(§6) + 페르소나 샘플링(§5B.1)은 선택이 아니라 필수. 파싱·통계는 전부 클라이언트(웹워커 권장), LLM엔 좁힌 청크/샘플만.
 - **읽음 표시 없음:** export엔 1(읽씹) 없음. 지연/gap으로 프록시하되 UI에서 단정 금지.
 - **무료 레이트리밋:** 200/day. 라이브에서 여러 명 쓰면 터짐 → 데모 모드(상위 N구간/페르소나 캐시) + 발표용 캐시 + 백업으로 유료 키 1개 환경변수 대기.

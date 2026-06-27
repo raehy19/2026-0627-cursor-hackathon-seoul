@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "validate": "tsx scripts/validate.ts"
+    "validate": "tsx scripts/validate.ts",
+    "seed-sample": "tsx scripts/seed-sample.ts",
+    "generate-sample": "tsx scripts/generate-live-sample.ts",
+    "sample:all": "npm run generate-sample && npm run seed-sample"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

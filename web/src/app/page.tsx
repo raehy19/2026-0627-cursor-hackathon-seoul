@@ -66,6 +66,26 @@ export default function Home() {
     [refreshHistory],
   );
 
+  async function handleQuickStart() {
+    setParseError(null);
+    setScreen("parsing");
+    try {
+      const res = await fetch("/sample/analysis.json", { cache: "no-store" });
+      if (!res.ok) throw new Error("분석 데이터를 불러오지 못했어요.");
+      const record = (await res.json()) as StoredAnalysis;
+      record.createdAt = Date.now();
+      setParse(record.parseResult);
+      setFileName(record.title);
+      persist(record);
+      setScreen("dashboard");
+    } catch (e) {
+      setParseError(
+        e instanceof Error ? e.message : "분석을 불러오지 못했어요.",
+      );
+      setScreen("landing");
+    }
+  }
+
   async function handleFile(file: File) {
     setParseError(null);
     setFileName(file.name);
@@ -132,7 +152,7 @@ export default function Home() {
     <div className="min-h-full">
       {screen !== "landing" && (
         <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur">
-          <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
             <button
               onClick={goHome}
               className="bg-gradient-to-r from-accent to-accent-2 bg-clip-text text-lg font-black text-transparent"
@@ -167,6 +187,7 @@ export default function Home() {
       {screen === "landing" && (
         <Upload
           onFile={handleFile}
+          onQuickStart={handleQuickStart}
           hasHistory={historyCount > 0}
           historyCount={historyCount}
           onOpenHistory={() => setScreen("history")}

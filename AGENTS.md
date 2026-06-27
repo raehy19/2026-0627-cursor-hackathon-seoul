@@ -15,10 +15,9 @@ Canonical entry file for AI assistants in this repository.
 1. Read [docs/agent/SESSION_START.md](docs/agent/SESSION_START.md) first.
 2. Read [docs/agent/WORKFLOW.md](docs/agent/WORKFLOW.md).
 3. Read [docs/agent/INDEX.md](docs/agent/INDEX.md).
-4. Open only the repo/task doc you need.
-5. Read [docs/DOCUMENTATION_SYSTEM.md](docs/DOCUMENTATION_SYSTEM.md) before changing document ownership or versioning behavior.
-6. For browser or localhost work, read [docs/agent/LOCAL_BROWSER_PROFILES_AND_PORTS.md](docs/agent/LOCAL_BROWSER_PROFILES_AND_PORTS.md).
-7. Before touching any token, key, or `.env` value, read [docs/agent/SECRETS_POLICY.md](docs/agent/SECRETS_POLICY.md).
+4. Open only the repo/task doc you need (usually [docs/project/prd-what-if.md](docs/project/prd-what-if.md) or [docs/operations/current-state.md](docs/operations/current-state.md)).
+5. For browser or localhost work, read [docs/agent/LOCAL_BROWSER_PROFILES_AND_PORTS.md](docs/agent/LOCAL_BROWSER_PROFILES_AND_PORTS.md).
+6. Before touching any token, key, or `.env` value, read [docs/agent/SECRETS_POLICY.md](docs/agent/SECRETS_POLICY.md).
 
 ## Language Policy
 - Agent-facing operating documents must be written in English.
@@ -84,9 +83,7 @@ rule, made concrete.
 - `docs/operations/current-state.md` reflects the new state before the session ends.
 
 ## Conventions And Learnings
-- Lightweight, repo-wide conventions live in [docs/learnings/](docs/learnings/README.md).
-- Heavy decisions go to [docs/architecture/adr/](docs/architecture/adr/README.md).
-- The approval queue is the inbox; ADRs are the durable record; learnings are everyday agreements.
+- Product and architecture decisions: record in [docs/operations/approval-queue.md](docs/operations/approval-queue.md) when blocked; resolved items may be noted in PRD or `current-state.md`.
 
 ## Commit And Release Rules
 - Use [Conventional Commits](https://www.conventionalcommits.org/). See [CONTRIBUTING.md](CONTRIBUTING.md).
@@ -103,15 +100,10 @@ slash commands, skills, or custom commands; the semantics are the same across to
 | `/session-start` | Refresh `SESSION_START.md` from current operating docs | `docs/agent/SESSION_START.md` |
 | `/checkpoint` | Write a Section A–E checkpoint and refresh `current-state.md` | `docs/operations/current-state.md` |
 | `/approval-add <title>` | Append a new approval item with auto-numbered ID | `docs/operations/approval-queue.md` |
-| `/approval-resolve <id>` | Mark an approval as resolved and route it to ADR or archive | `docs/operations/approval-queue.md` |
-| `/promote-to-adr <id>` | Create an ADR from a resolved approval item | `docs/architecture/adr/` |
-| `/learning-add <title>` | Append a lightweight convention/learning | `docs/learnings/` |
-| `/spec-new <title>` | Scaffold a spec document from EARS or Gherkin template | `docs/specs/` |
-| `/spec-tasks <spec>` | Break a **Ready** spec into ordered tasks traced to requirement IDs | `docs/specs/*.tasks.md` |
+| `/approval-resolve <id>` | Mark an approval as resolved | `docs/operations/approval-queue.md` |
 
-Claude Code bindings live in `.claude/commands/`. Cursor users can map them via
-`.cursor/commands/` if needed. Codex and other tools can run them as plain
-instructions.
+Claude Code bindings live in `.claude/commands/` when present. Cursor users can map
+equivalent intents via `.cursor/commands/` if needed.
 
 ## Verification Layer
 
@@ -122,16 +114,8 @@ This repo enforces several rules automatically. See [CONTRIBUTING.md](CONTRIBUTI
 - `lefthook` — pre-commit and commit-msg gates
 - GitHub Actions workflow `docs-check` mirrors the same checks in CI
 
-## Applying This Harness Elsewhere
-
-If you were pointed at this starter from a *different* working directory and
-asked to apply the harness to that other repository, follow
-[docs/agent/APPLY_HARNESS.md](docs/agent/APPLY_HARNESS.md). It is a four-phase
-playbook (audit → plan → apply → verify) that is conflict-aware: it will
-preserve existing entry files, hooks, commit conventions, ADR folders, and
-release tooling rather than overwrite them.
-
 ## Current Repository Phase
-- Do not create application code yet.
-- Lock down product direction and MVP scope in docs first.
-- Keep planning, approval, and E2E scenario docs current until implementation starts.
+- Application code lives in `web/` (Phase 1 — hackathon implementation).
+- Product direction is locked in [docs/project/prd-what-if.md](docs/project/prd-what-if.md).
+- Keep `current-state.md`, README, and E2E docs in sync with code changes.
+- Private Kakao exports belong in `data/chat-exports/` only — never commit them.

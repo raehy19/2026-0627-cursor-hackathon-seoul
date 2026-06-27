@@ -87,17 +87,21 @@ export function Timeline({
       latMin: l.medianSec / 60,
     }));
 
-    const sessions: SessionDatum[] = stats.sessions.map((s) => {
-      const tension = tensionBySession?.[s.id];
-      const analyzed = typeof tension === "number";
-      const z = Math.max(s.riskScore, analyzed ? tension : 0);
-      return { t: s.startTs, z: Math.max(4, z), analyzed, tension: tension ?? 0, session: s };
-    });
+    const sessions: SessionDatum[] = stats.sessions
+      .map((s) => {
+        const tension = tensionBySession?.[s.id];
+        const analyzed = typeof tension === "number";
+        const z = Math.max(s.riskScore, analyzed ? tension : 0);
+        return { t: s.startTs, z: Math.max(4, z), analyzed, tension: tension ?? 0, session: s };
+      })
+      .sort((a, b) => b.z - a.z)
+      .slice(0, stats.sessions.length > 60 ? 50 : stats.sessions.length)
+      .sort((a, b) => a.t - b.t);
 
     return {
       densityData: density.sort((a, b) => a.t - b.t),
       latencyData: latency.sort((a, b) => a.t - b.t),
-      sessionData: sessions.sort((a, b) => a.t - b.t),
+      sessionData: sessions,
       dropBands: computeDensityDropBands(stats.density),
     };
   }, [stats, tensionBySession]);
@@ -119,9 +123,9 @@ export function Timeline({
 
   return (
     <div className="w-full">
-      <div className="h-[320px] w-full">
+      <div className="h-[420px] w-full min-w-0">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart margin={{ top: 16, right: 16, bottom: 8, left: -8 }}>
+          <ComposedChart margin={{ top: 16, right: 24, bottom: 12, left: 0 }}>
             <CartesianGrid stroke="#2a2a3d" strokeDasharray="3 3" />
             {dropBands.map((b, idx) => (
               <ReferenceArea
@@ -142,7 +146,7 @@ export function Timeline({
               tickFormatter={(v: number) => formatDate(v)}
               tick={{ fill: "#9a9ab0", fontSize: 11 }}
               stroke="#2a2a3d"
-              minTickGap={40}
+              minTickGap={56}
             />
             <YAxis
               yAxisId="density"
@@ -230,7 +234,7 @@ export function Timeline({
           급락 구간
         </span>
         <span className="inline-flex items-center gap-1">
-          <span className="size-2.5 rounded-full bg-danger" /> 위험 구간 (클릭)
+          <span className="size-2.5 rounded-full bg-danger" /> 위험 구간 상위 (클릭)
         </span>
       </div>
     </div>

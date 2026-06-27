@@ -118,8 +118,19 @@ export function buildCounterfactualPrompt(input: {
   riskyMoments: SegmentAnalysis["risky_moments"];
   contextLines: string;
   lines: string;
+  alternativeLine?: string;
 }): LlmMessage[] {
-  const { me, them, mode, segmentId, segmentSummary, riskyMoments, contextLines, lines } = input;
+  const {
+    me,
+    them,
+    mode,
+    segmentId,
+    segmentSummary,
+    riskyMoments,
+    contextLines,
+    lines,
+    alternativeLine,
+  } = input;
   const system = [
     `너는 한국어 대화 시뮬레이터다. 나="${me}", 상대="${them}". 결정적 순간에 내가 다르게 말했다면 어땠을지 시뮬레이션한다.`,
     `시나리오 모드: ${mode} — ${CF_MODE_GUIDE[mode]}`,
@@ -141,6 +152,9 @@ export function buildCounterfactualPrompt(input: {
   const user = [
     `구간 요약: ${segmentSummary}`,
     `위험 순간: ${JSON.stringify(riskyMoments)}`,
+    alternativeLine?.trim()
+      ? `\n[사용자가 직접 입력한 대안 대사]\n"${alternativeLine.trim()}"\n이 문장을 suggested_line으로 사용하고, 그 이후 대화를 시뮬레이션하라.`
+      : "",
     contextLines ? `\n[직전 맥락]\n${contextLines}` : "",
     `\n[해당 구간 대화]\n${lines}`,
   ]

@@ -10,7 +10,7 @@ Steps:
    - `docs/operations/current-state.md`
    - `docs/operations/todo-plan.md`
    - `docs/operations/approval-queue.md`
-   - `docs/project/product-brief.md`
+   - `docs/project/prd-what-if.md`
 2. Open `docs/agent/SESSION_START.md`.
 3. Update the following sections only:
    - `Last refreshed` (use today's date in `YYYY-MM-DD (UTC±HH:MM)` form)

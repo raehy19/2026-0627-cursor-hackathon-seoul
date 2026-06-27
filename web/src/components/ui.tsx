@@ -229,7 +229,7 @@ export function Modal({
       <div
         className={cx(
           "card my-auto w-full overflow-hidden shadow-2xl",
-          wide ? "max-w-4xl" : "max-w-2xl",
+          wide ? "max-w-6xl" : "max-w-2xl",
         )}
         onClick={(e) => e.stopPropagation()}
       >

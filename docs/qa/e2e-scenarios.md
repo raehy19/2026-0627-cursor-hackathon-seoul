@@ -1,49 +1,51 @@
 # E2E Scenario Checklist — What if…?
 
-Baseline user journeys for the hackathon demo. Canonical spec: [prd-what-if.md](../project/prd-what-if.md).
+Baseline user journeys. Canonical spec: [prd-what-if.md](../project/prd-what-if.md).
 
-## Scenario 1 — 1:1 money shot (전 연인)
+Sample files live in **`data/chat-exports/`** (gitignored). See [data/chat-exports/README.md](../../data/chat-exports/README.md).
 
-**Entry:** 랜딩 → `KakaoTalkChats (1).txt` 업로드 → "나" = 정래현 선택
+## Scenario 1 — 1:1 money shot
+
+**Entry:** 랜딩 → `data/chat-exports/KakaoTalkChats (1).txt` 업로드 → "나" = 정래현
 
 **Success path:**
 
-1. 파싱 완료: 참가자 2명, one_on_one 모드
-2. 로컬 통계: 타임라인(밀도/답장지연), 세션 위험 마커 표시
-3. "관계 분석 시작" → MAP 진행률 → 헤어진 이유 카드(근거 인용)
-4. 위험 마커 클릭 → 구간 카톡 버블 → "여기서 이렇게 말했더라면"
-5. 반사실 모달: 현실/해피/망함 탭 → 대체 타임라인 카톡 버블
+1. 파싱: 참가자 2명, one_on_one
+2. 로컬 통계: 타임라인 · 세션 위험 마커
+3. **OpenRouter로 분석받기** 또는 **코딩 에이전트로 분석받기** (번들 → 명령 → JSON import)
+4. 관계 리포트 · 위험 인용 카드
+5. 위험 마커 → 구간 카톡 → "여기서 이렇게 말했더라면" → 반사실 모달
 
 **Failure / recovery:**
 
-- LLM 키 없음 → 로컬 통계·타임라인·구간 탐색은 동작, AI 분석 안내 배너
-- 429 → 백오프 후 재시도 또는 "잠시 후 다시" 메시지
+- OpenRouter 키 없음 → 에이전트 경로 또는 mock(`NEXT_PUBLIC_MOCK_LLM=true`)
+- 429 → 백오프 / 재시도 안내
 
-**Privacy check:** Network 탭에 원문 파일 업로드 없음; `/api/llm`에 청크만 POST
+**Privacy:** Network에 원문 파일 업로드 없음; `/api/llm`에 청크만 POST
 
-## Scenario 2 — 그룹 페르소나 + 시뮬 (공돌이들)
+## Scenario 2 — 그룹 페르소나 + 시뮬
 
-**Entry:** CSV 또는 `KakaoTalkChats.txt` 업로드 → "나" 선택
+**Entry:** `data/chat-exports/KakaoTalk_Chat_*.csv` 또는 `KakaoTalkChats.txt` 업로드
 
 **Success path:**
 
-1. group 모드, 참가자 5명
-2. "페르소나 분석" → 멤버별 카드(voice, signature, stats)
-3. 시뮬 입력: "야 우리 주말에 한라산 ㄱ?" → realistic/chaos/wholesome → 카톡 스레드 + outcome
+1. group 모드, 5명
+2. OpenRouter 또는 에이전트로 페르소나 분석
+3. 시뮬: "야 우리 주말에 한라산 ㄱ?" → realistic/chaos/wholesome
 
-## Scenario 3 — 재방문 (IndexedDB)
+## Scenario 3 — 바로 분석받기 (발표)
 
-**Entry:** 이전 분석 완료 후 "기록" → 항목 클릭
+**Entry:** 랜딩 → 「바로 분석받기」
 
-**Success path:** 파싱·통계·(있으면) LLM 결과 그대로 복원, 재업로드 없음
+**Success path:** `public/sample/analysis.json` 로드 → 대시보드 즉시 표시
 
-**Delete:** 기록 삭제 후 목록에서 제거
+## Scenario 4 — 재방문 (IndexedDB)
 
-## Automated checks (CI/local)
+**Entry:** 기록 → 항목 클릭 → 복원 · 삭제
+
+## Automated checks
 
 ```bash
-cd web && npm run validate   # parser + stats on 3 golden files
-cd web && npm run build      # production build
+cd web && npm run validate
+cd web && npm run build
 ```
-
-Golden sample files live at repo root (gitignored); see [web/README.md](../../web/README.md).

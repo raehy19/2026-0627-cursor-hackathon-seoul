@@ -1,20 +1,19 @@
 /**
  * Validation harness for the DATA CORE (parser + stats). Runs the public
- * parser/stats against the three real sample exports at the repo root and
+ * parser/stats against the three real sample exports in data/chat-exports/
  * asserts the byte-inspected facts. Run with:  cd web && npx tsx scripts/validate.ts
  *
  * The parser/stats modules only `import type` from "@/lib/types" (erased at
  * runtime), so importing them via relative paths works under tsx directly.
  */
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { parseKakaoExport } from "../src/lib/parser/index";
 import { normalizeTxt, detectTxtLocale } from "../src/lib/parser/detect";
 import { parseTxt } from "../src/lib/parser/txt";
 import { computeDerivedStats } from "../src/lib/stats/index";
 import type { ParseResult } from "../src/lib/types";
+import { chatExportPath } from "./paths";
 
-const ROOT = resolve(process.cwd(), "..");
 const CSV_NAME = "KakaoTalk_Chat_공돌이들_2026-06-27-13-08-31.csv";
 const ONE_NAME = "KakaoTalkChats (1).txt";
 const BIG_NAME = "KakaoTalkChats.txt";
@@ -28,7 +27,7 @@ function check(label: string, cond: boolean, detail?: string): void {
 }
 
 function fileFrom(name: string): File {
-  const buf = readFileSync(resolve(ROOT, name));
+  const buf = readFileSync(chatExportPath(name));
   return new File([buf], name, { type: name.endsWith(".csv") ? "text/csv" : "text/plain" });
 }
 
@@ -82,7 +81,7 @@ async function main(): Promise<void> {
 
   // --- big group txt ------------------------------------------------------
   console.log("\n=== KakaoTalkChats.txt (Android EN, big group) ===");
-  const rawBig = readFileSync(resolve(ROOT, BIG_NAME), "utf8");
+  const rawBig = readFileSync(chatExportPath(BIG_NAME), "utf8");
   const norm = normalizeTxt(rawBig);
   const locale = detectTxtLocale(norm);
   const t0 = performance.now();
