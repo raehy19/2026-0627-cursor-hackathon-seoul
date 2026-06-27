@@ -8,8 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "validate": "tsx scripts/validate.ts",
-    "seed-sample": "tsx scripts/seed-sample.ts",
-    "generate-sample": "tsx scripts/generate-live-sample.ts",
+    "seed-public-demo": "tsx scripts/seed-public-demo.ts",
+    "generate-sample": "tsx ../data/chat-exports/scripts/generate-live-sample.ts",
+    "seed-sample": "tsx ../data/chat-exports/scripts/seed-sample.ts",
     "sample:all": "npm run generate-sample && npm run seed-sample"
   },
   "dependencies": {

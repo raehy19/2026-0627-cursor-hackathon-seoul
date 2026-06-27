@@ -25,6 +25,10 @@ data/chat-exports/**
 /KakaoTalkChats*.txt
 /*카카오톡*.txt
 
+# Safety net — private sample tooling must not re-enter git
+/web/scripts/generate-live-sample.ts
+/web/scripts/seed-sample.ts
+
 # Lefthook local
 .lefthook-local.yml
 

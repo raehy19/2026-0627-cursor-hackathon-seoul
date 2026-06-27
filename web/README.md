@@ -37,9 +37,9 @@ npm run dev                  # 기본 :3000, 발표 시 -p 3001
 | `npm run dev` | 개발 서버 |
 | `npm run build` | 프로덕션 빌드 |
 | `npm run validate` | `data/chat-exports/` 골든 샘플 3종 파서·통계 검증 |
-| `npm run generate-sample` | 합성 live-sample txt 생성 |
-| `npm run seed-sample` | `public/sample/analysis.json` 사전분석 생성 |
-| `npm run sample:all` | 위 두 명령 연속 실행 |
+| `npm run seed-public-demo` | **공개용** fictional `public/sample/analysis.json` 생성 |
+| `npm run generate-sample` | **로컬 전용** `data/chat-exports/` (gitignore) |
+| `npm run seed-sample` | **로컬 전용** `data/chat-exports/sample-analysis.json` |
 
 ## 로컬 카톡 export
 
