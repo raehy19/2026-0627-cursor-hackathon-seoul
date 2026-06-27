@@ -69,7 +69,7 @@ P0 기능은 충분하나 **객석 후킹**을 위해 우선순위대로:
 2. **타임라인 밀도 급락 밴드** — `stats.density` 급락 구간을 차트 배경에 빨간 밴드로 표시(마커와 시각적 정렬)
 3. **반사실 split view** — 좌: 원본 한 줄 / 우: 평행우주 타임라인 + `outcome_delta` 배너
 4. **분석 reveal** — MAP 진행 중·완료 시 stagger 애니 + "가장 아팠던 한 줄" 하이라이트 카드(`risky_moments` top1)
-5. **랜딩·카피** — "평행우주 #042" 등 호기심 카피, 감정 톤(윤리 가드레일 유지: 통찰·성장, 자기비난 증폭 금지)
+5. **랜딩·카피** — hero 서브카피 + **Three.js 3D 배경**(평행우주/분기 메타포). **UI 이모지 사용 금지** — 아이콘은 CSS/SVG/3D로 대체.
 
 > 드라마틱 ≠ 비난. §7 톤 가이드와 §5B.4 그룹 톤 가이드는 그대로.
 
@@ -415,7 +415,7 @@ type StoredAnalysis = {
 - **밀도 급락 밴드**: `Timeline` ComposedChart에 ReferenceArea(또는 커스텀 레이어). 전주 대비 50%↓ 일을 후보.
 - **반사실 split**: `CounterfactualModal` 좌우 2열 — 원본 버블 vs 시뮬 버블, 하단 `outcome_delta`.
 - **Reveal**: 세gment 카드가 MAP 완료 순으로 fade-in; top risky quote를 accent-2 카드로 고정.
-- **랜딩**: hero 서브카피 + optional glitch/parallel-universe 넘버링(과하지 않게).
+- **랜딩**: hero 서브카피 + **Three.js** full-bleed 3D scene (`@react-three/fiber`, SSR off). 이모지 금지.
 
 ---
 

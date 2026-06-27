@@ -13,6 +13,12 @@ Last updated:
 - No DB. IndexedDB local only. Thin `/api/llm` proxy to OpenRouter free models. Privacy = feature.
 - Stack: Next.js 16, React 19, Tailwind v4, papaparse, idb-keyval, recharts. Deploy target Vercel (root dir `web`).
 
+## Build status (2026-06-27, checkpoint 4)
+
+- **P1.5 UX polish shipped:** Three.js landing hero · no-emoji UI · 관계 온도계 · 밀도 급락 밴드 · 반사실 split · MAP segment streaming reveal · risky quote card.
+- **Build:** `npm run build` green after P1.5.
+- **Next:** LLM smoke test · demo IndexedDB cache · Vercel deploy.
+
 ## Build status (2026-06-27, checkpoint 3)
 
 - **P0 complete:** `web/` committed in module chunks; build + validate green; dev on `:3001` (3000 occupied).
