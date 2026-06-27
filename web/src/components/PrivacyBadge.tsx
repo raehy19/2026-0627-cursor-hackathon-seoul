@@ -53,8 +53,9 @@ export function PrivacyBadge({
       <div className="text-sm">
         <p className="font-semibold text-ok">대화는 당신 브라우저에만 저장됩니다.</p>
         <p className="text-muted">
-          서버로 원문을 보내지 않습니다. 모든 분석 기록은 이 기기의 브라우저(IndexedDB)에만
-          남아요.
+          원문 파일은 서버에 올라가지 않아요. AI 분석 시에는 OpenRouter로 보낼 구간
+          텍스트만 프록시를 거쳐 일시 전송됩니다. 내 OpenRouter 키를 쓰면 그 할당량으로
+          분석할 수 있어요.
         </p>
       </div>
     </div>

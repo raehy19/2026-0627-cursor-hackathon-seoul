@@ -1,13 +1,25 @@
 import { LLM_PROXY_PATH, type LlmMessage } from "@/lib/llm/config";
+import { openRouterKeyHeaders } from "@/lib/llm/userKey";
 
 /**
- * Thrown when the proxy responds 503 (no OPENROUTER_API_KEY). The UI can catch
- * this to degrade gracefully and still render local stats.
+ * Thrown when the proxy responds 503 (no OPENROUTER_API_KEY and no user key).
  */
 export class LlmUnavailableError extends Error {
-  constructor(message = "LLM 사용 불가: OPENROUTER_API_KEY가 설정되지 않았습니다.") {
+  constructor(
+    message = "LLM 사용 불가: 서버 OpenRouter 키가 없습니다. 아래에서 내 OpenRouter 키를 입력하거나 코딩 에이전트 경로를 사용하세요.",
+  ) {
     super(message);
     this.name = "LlmUnavailableError";
+  }
+}
+
+/** Per-IP rate limit on shared server key. */
+export class LlmRateLimitError extends Error {
+  retryAfterSec?: number;
+  constructor(message: string, retryAfterSec?: number) {
+    super(message);
+    this.name = "LlmRateLimitError";
+    this.retryAfterSec = retryAfterSec;
   }
 }
 
@@ -99,7 +111,10 @@ export async function callLLMRaw(
   try {
     res = await fetch(LLM_PROXY_PATH, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...openRouterKeyHeaders(),
+      },
       body: JSON.stringify({
         messages,
         temperature: opts.temperature,
@@ -114,12 +129,31 @@ export async function callLLMRaw(
 
   if (res.status === 503) throw new LlmUnavailableError();
 
+  if (res.status === 429) {
+    let retryAfterSec: number | undefined;
+    try {
+      const body = (await res.json()) as { retryAfterSec?: number; detail?: string };
+      retryAfterSec = body.retryAfterSec;
+      throw new LlmRateLimitError(
+        body.detail ?? "요청이 너무 많습니다. 잠시 후 다시 시도하거나 내 OpenRouter 키를 사용하세요.",
+        retryAfterSec,
+      );
+    } catch (e) {
+      if (e instanceof LlmRateLimitError) throw e;
+      throw new LlmRateLimitError("요청 한도에 걸렸습니다. 잠시 후 다시 시도하세요.");
+    }
+  }
+
   if (!res.ok) {
     let detail = "";
     try {
       const body = (await res.json()) as { error?: string; detail?: string };
       detail = body?.error ?? body?.detail ?? "";
-    } catch {
+      if (res.status === 401) {
+        throw new LlmError("OpenRouter API 키가 거부되었습니다. 키를 확인해 주세요.", 401);
+      }
+    } catch (e) {
+      if (e instanceof LlmError) throw e;
       /* ignore parse error */
     }
     throw new LlmError(`LLM 프록시 오류 ${res.status}${detail ? `: ${detail}` : ""}`, res.status);

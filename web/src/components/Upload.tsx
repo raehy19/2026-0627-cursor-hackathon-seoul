@@ -4,6 +4,7 @@ import { useRef, useState, type DragEvent } from "react";
 import { cx } from "@/components/format";
 import { Button, Chip } from "@/components/ui";
 import { PrivacyBadge } from "@/components/PrivacyBadge";
+import { OpenRouterKeySetup } from "@/components/OpenRouterKeySetup";
 import { LandingHeroBackground } from "@/components/hero/LandingHeroBackground";
 
 const ACCEPT = [".txt", ".csv"];
@@ -133,6 +134,7 @@ export function Upload({
         )}
 
         <PrivacyBadge className="mt-6" />
+        <OpenRouterKeySetup compact className="mt-3" />
 
         {onQuickStart && (
           <div className="mt-6 text-center">

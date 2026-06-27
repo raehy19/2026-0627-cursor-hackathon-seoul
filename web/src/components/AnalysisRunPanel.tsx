@@ -1,17 +1,21 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   extractPersonas,
+  LlmRateLimitError,
   LlmUnavailableError,
   runOneOnOneAnalysis,
 } from "@/lib/llm/client";
 import { USE_MOCK_LLM } from "@/lib/llm/config";
+import { canRunOpenRouter, fetchServerLlmHealth, type LlmServerHealth } from "@/lib/llm/health";
+import { getUserOpenRouterKey } from "@/lib/llm/userKey";
 import { buildAgentBundle, downloadAgentBundle } from "@/lib/agent/bundle";
 import { applyAgentOutput } from "@/lib/agent/importResult";
 import { buildAgentCommands, copyText } from "@/lib/agent/prompt";
 import { parseAgentOutputJson, validateAgentOutput } from "@/lib/agent/validate";
 import type { StoredAnalysis } from "@/lib/types";
+import { OpenRouterKeySetup } from "@/components/OpenRouterKeySetup";
 import { Button, Modal, Notice, Spinner } from "@/components/ui";
 import { ProgressBar } from "@/components/ProgressBar";
 import { SegmentRevealList } from "@/components/SegmentRevealList";
@@ -45,10 +49,23 @@ export function AnalysisRunPanel({
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const [openRouterError, setOpenRouterError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [serverHealth, setServerHealth] = useState<LlmServerHealth | null>(null);
+  const [userKey, setUserKey] = useState<string | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
   const dataRef = useRef(data);
   dataRef.current = data;
+
+  const refreshKeyState = useCallback(() => {
+    setUserKey(getUserOpenRouterKey());
+    fetchServerLlmHealth().then(setServerHealth).catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    refreshKeyState();
+  }, [refreshKeyState]);
+
+  const canOpenRouter = canRunOpenRouter(serverHealth, userKey);
 
   const commands = useMemo(() => buildAgentCommands(data), [data]);
   const bundle = useMemo(() => buildAgentBundle(data), [data]);
@@ -56,6 +73,15 @@ export function AnalysisRunPanel({
   if (ready && runState === "done") return null;
 
   async function runOpenRouter() {
+    if (!canRunOpenRouter(serverHealth, getUserOpenRouterKey())) {
+      setOpenRouterError(
+        "서버 OpenRouter를 사용할 수 없습니다. 아래에 내 OpenRouter 키를 저장한 뒤 다시 시도하세요.",
+      );
+      setRunState("error");
+      setLastRun("openrouter");
+      return;
+    }
+
     const ac = new AbortController();
     abortRef.current = ac;
     setLastRun("openrouter");
@@ -106,11 +132,15 @@ export function AnalysisRunPanel({
     } catch (e) {
       setRunState("error");
       if (e instanceof LlmUnavailableError) {
+        setOpenRouterError(e.message);
+      } else if (e instanceof LlmRateLimitError) {
         setOpenRouterError(
-          "OpenRouter API 키가 없거나 프록시를 사용할 수 없습니다. 서버에 OPENROUTER_API_KEY를 설정하거나, 코딩 에이전트 경로를 사용하세요.",
+          e.retryAfterSec
+            ? `${e.message} (${e.retryAfterSec}초 후 재시도)`
+            : e.message,
         );
       } else {
-        setOpenRouterError("OpenRouter 분석에 실패했습니다. 네트워크·한도를 확인하세요.");
+        setOpenRouterError("OpenRouter 분석에 실패했습니다. 키·네트워크·한도를 확인하세요.");
       }
     }
   }
@@ -160,8 +190,13 @@ export function AnalysisRunPanel({
       ? "어긋난 구간·위험한 한마디·관계 흐름을 분석합니다."
       : "멤버별 말투·드립·반응 스타일을 정리합니다.";
 
-  const openRouterLabel =
-    kind === "one_on_one" ? "OpenRouter로 분석받기" : "OpenRouter로 페르소나 추출";
+  const openRouterLabel = userKey
+    ? kind === "one_on_one"
+      ? "내 OpenRouter 키로 분석받기"
+      : "내 키로 페르소나 추출"
+    : kind === "one_on_one"
+      ? "OpenRouter로 분석받기"
+      : "OpenRouter로 페르소나 추출";
 
   return (
     <>
@@ -178,8 +213,12 @@ export function AnalysisRunPanel({
                 </p>
               )}
             </div>
+            <OpenRouterKeySetup onKeyChange={refreshKeyState} />
+
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-              <Button onClick={runOpenRouter}>{openRouterLabel}</Button>
+              <Button onClick={runOpenRouter} disabled={!canOpenRouter}>
+                {openRouterLabel}
+              </Button>
               <Button variant="ghost" onClick={() => setAgentOpen(true)}>
                 코딩 에이전트로 분석받기
               </Button>
@@ -207,6 +246,7 @@ export function AnalysisRunPanel({
 
         {runState === "error" && (
           <div className="space-y-3">
+            <OpenRouterKeySetup onKeyChange={refreshKeyState} />
             <Notice tone="warn" title="분석 실패">
               {lastRun === "openrouter"
                 ? openRouterError ??

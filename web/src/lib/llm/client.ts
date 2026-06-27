@@ -18,7 +18,7 @@ import {
   formatLines,
   stratifiedSample,
 } from "@/lib/llm/formatLines";
-import { callLLMJson, LlmError, LlmUnavailableError } from "@/lib/llm/json";
+import { callLLMJson } from "@/lib/llm/json";
 import {
   mockCounterfactual,
   mockExtractPersonas,
@@ -38,7 +38,7 @@ export type SegmentCb = (segment: SegmentAnalysis) => void;
 export type AnalysisSource = "auto" | "openrouter" | "mock";
 
 // Re-exported so the UI can `catch` proxy/availability failures from one place.
-export { LlmUnavailableError, LlmError };
+export { LlmUnavailableError, LlmError, LlmRateLimitError } from "@/lib/llm/json";
 
 function useMockLlm(source?: AnalysisSource): boolean {
   if (source === "openrouter") return false;

@@ -17,8 +17,18 @@ npm run dev                  # 기본 :3000, 발표 시 -p 3001
 
 | 변수 | 설명 |
 |------|------|
-| `OPENROUTER_API_KEY` | 서버 프록시용 (선택) |
-| `NEXT_PUBLIC_MOCK_LLM=true` | OpenRouter 없이 mock 분석 (바로 분석받기 등) |
+| `OPENROUTER_API_KEY` | Vercel 서버 env — 공유 무료 분석 (선택) |
+| `NEXT_PUBLIC_MOCK_LLM` | Production: `false` 권장 |
+| `LLM_RATE_LIMIT_SERVER_PER_MIN` | IP당 분당 한도 (기본 24) |
+
+서버 키가 없거나 실패하면 앱에서 **내 OpenRouter 키**를 입력·검증(`GET/POST /api/llm/health`) 후 localStorage에 저장해 분석합니다.
+
+## 분석 경로 (업로드 후 대시보드)
+
+| 버튼 | 설명 |
+|------|------|
+| **OpenRouter로 분석받기** | 서버 공유 키 또는 내 OpenRouter 키 |
+| **코딩 에이전트로 분석받기** | 번들 · 명령 · JSON import |
 
 ## 스크립트
 
@@ -33,22 +43,9 @@ npm run dev                  # 기본 :3000, 발표 시 -p 3001
 
 ## 로컬 카톡 export
 
-실제 대화 파일은 **repo 루트가 아니라** [`data/chat-exports/`](../data/chat-exports/) 에 둡니다. 이 폴더는 gitignore됩니다.
-
-## 분석 경로 (업로드 후 대시보드)
-
-| 버튼 | 설명 |
-|------|------|
-| **OpenRouter로 분석받기** | `/api/llm` MAP-REDUCE. mock env여도 이 버튼만 실제 API 호출 |
-| **코딩 에이전트로 분석받기** | 번들 다운로드 · 명령 복사 · JSON import |
+실제 대화 파일은 [`data/chat-exports/`](../data/chat-exports/) 에 둡니다 (gitignore).
 
 에이전트 가이드: [`public/agent/ANALYSIS.md`](public/agent/ANALYSIS.md)
-
-구현:
-
-- `src/components/AnalysisRunPanel.tsx` — UI
-- `src/lib/agent/` — 번들 · 검증 · import
-- `src/lib/llm/client.ts` — `source: "openrouter" | "mock" | "auto"`
 
 ## 아키텍처
 
@@ -64,4 +61,5 @@ src/app/api/llm/      OpenRouter 서버 프록시 (원문 저장 없음)
 ## 배포 (Vercel)
 
 - Root Directory: `web`
-- Environment: `OPENROUTER_API_KEY`
+- Environment: `OPENROUTER_API_KEY` (선택), `NEXT_PUBLIC_MOCK_LLM=false`
+- Health: `GET /api/llm/health`
