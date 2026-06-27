@@ -13,11 +13,16 @@ Last updated:
 - No DB. IndexedDB local only. Thin `/api/llm` proxy to OpenRouter free models. Privacy = feature.
 - Stack: Next.js 16, React 19, Tailwind v4, papaparse, idb-keyval, recharts. Deploy target Vercel (root dir `web`).
 
+## Build status (2026-06-27, checkpoint 3)
+
+- **P0 complete:** `web/` committed in module chunks; build + validate green; dev on `:3001` (3000 occupied).
+- **Plan update:** PRD §9.1 (P1.5 UX polish) + §12 (token/call budget) added from review session.
+- **Next (doc-first):** P1.5 UX polish → LLM smoke test → demo IndexedDB cache → optional Vercel deploy.
+
 ## Build status (2026-06-27, checkpoint 2)
 
-- **Done:** full `web/` app — parser (4 formats, 98.24% match on 380k lines) · stats · LLM proxy/orchestration · UI (1:1 + group) · IndexedDB · `npm run build` green · `npm run validate` ALL PASSED on 3 golden samples.
-- **Commits pending:** `web/` was built in parallel agents; being committed in module chunks this session.
-- **Next:** LLM smoke test with API key · demo analysis cache · Vercel deploy · optional P1 polish.
+- **Done:** full `web/` app — parser · stats · LLM · UI · IndexedDB · `npm run build` green · `npm run validate` ALL PASSED.
+- **Committed:** `feat(web|parser|stats|llm|ui)` + docs checkpoint commits.
 
 ## Build status (2026-06-27, checkpoint 1)
 - Done: scaffold (`web/`), deps installed, shared contracts (`web/src/lib/types.ts`), skeletons, `globals.css` (kakao bubbles + theme), `layout.tsx`, `.env.example`/`.env.local` (key empty — user fills `OPENROUTER_API_KEY`).
