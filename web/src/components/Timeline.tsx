@@ -6,6 +6,7 @@ import {
   Cell,
   ComposedChart,
   Line,
+  ReferenceArea,
   ResponsiveContainer,
   Scatter,
   Tooltip,
@@ -14,7 +15,7 @@ import {
   ZAxis,
   type ScatterPointItem,
 } from "recharts";
-import type { DerivedStats, Session } from "@/lib/types";
+import type { DerivedStats, DensityPoint, Session } from "@/lib/types";
 import { formatDate, formatInt, humanizeSec } from "@/components/format";
 
 type SessionDatum = {
@@ -25,7 +26,41 @@ type SessionDatum = {
   session: Session;
 };
 
-/** warn (#ffb020) -> danger (#ff4d4d) by value 0..100 */
+type DropBand = { start: number; end: number };
+
+const DAY_MS = 86_400_000;
+
+/** Days where count falls below 50% of the prior 7-day rolling average. */
+export function computeDensityDropBands(density: DensityPoint[]): DropBand[] {
+  const sorted = [...density].sort((a, b) => a.date.localeCompare(b.date));
+  const bands: DropBand[] = [];
+  let i = 0;
+  while (i < sorted.length) {
+    if (i < 7) {
+      i++;
+      continue;
+    }
+    const window = sorted.slice(i - 7, i);
+    const avg = window.reduce((s, d) => s + d.count, 0) / 7;
+    if (avg <= 0 || sorted[i].count >= avg * 0.5) {
+      i++;
+      continue;
+    }
+    const bandStart = Date.parse(sorted[i].date);
+    let j = i + 1;
+    while (j < sorted.length) {
+      const w = sorted.slice(Math.max(0, j - 7), j);
+      const a = w.reduce((s, d) => s + d.count, 0) / w.length;
+      if (a <= 0 || sorted[j].count >= a * 0.5) break;
+      j++;
+    }
+    const bandEnd = Date.parse(sorted[j - 1].date) + DAY_MS;
+    bands.push({ start: bandStart, end: bandEnd });
+    i = j;
+  }
+  return bands;
+}
+
 function riskColor(v: number): string {
   const t = Math.max(0, Math.min(1, v / 100));
   const lerp = (a: number, b: number) => Math.round(a + (b - a) * t);
@@ -41,7 +76,7 @@ export function Timeline({
   tensionBySession?: Record<string, number>;
   onSelectSession: (session: Session) => void;
 }) {
-  const { densityData, latencyData, sessionData } = useMemo(() => {
+  const { densityData, latencyData, sessionData, dropBands } = useMemo(() => {
     const density = stats.density.map((d) => ({
       t: Date.parse(d.date),
       density: d.count,
@@ -63,6 +98,7 @@ export function Timeline({
       densityData: density.sort((a, b) => a.t - b.t),
       latencyData: latency.sort((a, b) => a.t - b.t),
       sessionData: sessions.sort((a, b) => a.t - b.t),
+      dropBands: computeDensityDropBands(stats.density),
     };
   }, [stats, tensionBySession]);
 
@@ -87,6 +123,17 @@ export function Timeline({
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart margin={{ top: 16, right: 16, bottom: 8, left: -8 }}>
             <CartesianGrid stroke="#2a2a3d" strokeDasharray="3 3" />
+            {dropBands.map((b, idx) => (
+              <ReferenceArea
+                key={`drop-${idx}`}
+                x1={b.start}
+                x2={b.end}
+                yAxisId="density"
+                fill="#ff4d4d"
+                fillOpacity={0.12}
+                strokeOpacity={0}
+              />
+            ))}
             <XAxis
               dataKey="t"
               type="number"
@@ -171,7 +218,6 @@ export function Timeline({
         </ResponsiveContainer>
       </div>
 
-      {/* legend */}
       <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-muted">
         <span className="inline-flex items-center gap-1">
           <span className="h-0.5 w-4 rounded bg-accent" /> 일별 메시지 수
@@ -180,7 +226,11 @@ export function Timeline({
           <span className="h-0.5 w-4 rounded bg-ok" /> 주간 응답 지연(중앙값)
         </span>
         <span className="inline-flex items-center gap-1">
-          <span className="size-2.5 rounded-full bg-danger" /> 분석된 구간 (클릭)
+          <span className="h-3 w-4 rounded-sm bg-danger/20 border border-danger/30" /> 밀도
+          급락 구간
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="size-2.5 rounded-full bg-danger" /> 위험 구간 (클릭)
         </span>
       </div>
     </div>

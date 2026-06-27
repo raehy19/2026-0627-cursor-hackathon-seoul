@@ -27,6 +27,12 @@ import {
   Stat,
 } from "@/components/ui";
 import { ProgressBar } from "@/components/ProgressBar";
+import {
+  RelationshipGauge,
+  computeRelationshipScore,
+} from "@/components/RelationshipGauge";
+import { RiskyQuoteCard } from "@/components/RiskyQuoteCard";
+import { SegmentRevealList } from "@/components/SegmentRevealList";
 
 function PersonCompare({
   me,
@@ -97,6 +103,8 @@ export function Dashboard1on1({
   const [cfSegment, setCfSegment] = useState<SegmentAnalysis | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
+  const dataRef = useRef(data);
+  dataRef.current = data;
   useEffect(() => {
     return () => abortRef.current?.abort();
   }, []);
@@ -125,22 +133,39 @@ export function Dashboard1on1({
     return t;
   }, [segBySession]);
 
+  const relationshipScore = useMemo(
+    () => computeRelationshipScore(data.segments, data.stats.sessions),
+    [data.segments, data.stats.sessions],
+  );
+
   async function runAnalysis() {
     const ac = new AbortController();
     abortRef.current = ac;
     setRunState("running");
     setProgress({ done: 0, total: 0, label: "분석 준비 중…" });
+    onChange({ ...dataRef.current, segments: [], overview: undefined });
     try {
       const { segments, overview } = await runOneOnOneAnalysis(
-        data.parseResult,
-        data.stats,
-        data.me,
+        dataRef.current.parseResult,
+        dataRef.current.stats,
+        dataRef.current.me,
         {
           signal: ac.signal,
           onProgress: (done, total, label) => setProgress({ done, total, label }),
+          onSegment: (seg) => {
+            const base = dataRef.current;
+            const next = {
+              ...base,
+              segments: [...(base.segments ?? []), seg],
+            };
+            dataRef.current = next;
+            onChange(next);
+          },
         },
       );
-      onChange({ ...data, segments, overview });
+      const final = { ...dataRef.current, segments, overview };
+      dataRef.current = final;
+      onChange(final);
       setRunState("done");
     } catch {
       setRunState("error");
@@ -166,7 +191,7 @@ export function Dashboard1on1({
                   찾아드려요.
                 </p>
               </div>
-              <Button onClick={runAnalysis}>💞 관계 분석 시작</Button>
+              <Button onClick={runAnalysis}>관계 분석 시작</Button>
             </div>
           )}
           {runState === "running" && (
@@ -199,11 +224,20 @@ export function Dashboard1on1({
         </div>
       )}
 
-      {/* streamed segments preview while running */}
+      {/* streamed segments while running */}
+      {runState === "running" && (data.segments?.length ?? 0) > 0 && (
+        <SegmentRevealList segments={data.segments ?? []} />
+      )}
       {runState === "running" && (data.segments?.length ?? 0) === 0 && (
         <p className="text-center text-xs text-muted">
           분석 결과가 준비되는 대로 여기에 나타납니다…
         </p>
+      )}
+
+      <RelationshipGauge score={relationshipScore} />
+
+      {data.segments && data.segments.length > 0 && (
+        <RiskyQuoteCard segments={data.segments} />
       )}
 
       {/* overview (LLM) */}

@@ -23,6 +23,7 @@ import {
 } from "@/lib/llm/prompts";
 
 export type ProgressCb = (done: number, total: number, label?: string) => void;
+export type SegmentCb = (segment: SegmentAnalysis) => void;
 
 // Re-exported so the UI can `catch` proxy/availability failures from one place.
 export { LlmUnavailableError, LlmError };
@@ -225,10 +226,16 @@ export async function runOneOnOneAnalysis(
   parse: ParseResult,
   stats: DerivedStats,
   me: string,
-  opts?: { maxSegments?: number; onProgress?: ProgressCb; signal?: AbortSignal },
+  opts?: {
+    maxSegments?: number;
+    onProgress?: ProgressCb;
+    onSegment?: SegmentCb;
+    signal?: AbortSignal;
+  },
 ): Promise<{ segments: SegmentAnalysis[]; overview: Overview }> {
   const maxSegments = opts?.maxSegments ?? 8;
   const onProgress = opts?.onProgress;
+  const onSegment = opts?.onSegment;
   const signal = opts?.signal;
   const them = otherParticipant(parse, me);
 
@@ -265,6 +272,7 @@ export async function runOneOnOneAnalysis(
       tone: raw.tone ?? { me: "", them: "" },
     };
     done++;
+    onSegment?.(seg);
     onProgress?.(done, total, session.label);
     return seg;
   });

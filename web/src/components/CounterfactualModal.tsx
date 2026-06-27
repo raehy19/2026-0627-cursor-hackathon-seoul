@@ -13,10 +13,10 @@ import { cfTurnsToRows, KakaoThread } from "@/components/KakaoThread";
 import { cx } from "@/components/format";
 import { Modal, Notice, Spinner } from "@/components/ui";
 
-const MODES: { id: CfMode; label: string; emoji: string }[] = [
-  { id: "realistic", label: "현실적", emoji: "🙂" },
-  { id: "best_case", label: "해피엔딩", emoji: "💖" },
-  { id: "disaster", label: "더 망함", emoji: "🔥" },
+const MODES: { id: CfMode; label: string; accent: string }[] = [
+  { id: "realistic", label: "현실적", accent: "border-muted" },
+  { id: "best_case", label: "해피엔딩", accent: "border-ok" },
+  { id: "disaster", label: "더 망함", accent: "border-danger" },
 ];
 
 type CacheMap = Partial<Record<CfMode, Counterfactual>>;
@@ -76,6 +76,7 @@ export function CounterfactualModal({
 
   const current = cache[mode];
   const loading = open && !current && !errored[mode];
+  const them = parse.participants.find((p) => p !== me) ?? "상대";
 
   function retry() {
     setErrored((e) => {
@@ -97,20 +98,20 @@ export function CounterfactualModal({
         </span>
       }
     >
-      {/* tabs */}
       <div className="mb-4 inline-flex rounded-xl border border-border bg-surface-2 p-1">
         {MODES.map((m) => (
           <button
             key={m.id}
+            type="button"
             onClick={() => setMode(m.id)}
             className={cx(
-              "rounded-lg px-4 py-1.5 text-sm font-medium transition-colors",
+              "rounded-lg border-b-2 px-4 py-1.5 text-sm font-medium transition-colors",
               mode === m.id
-                ? "bg-accent text-white"
-                : "text-muted hover:text-foreground",
+                ? "border-accent bg-accent text-white"
+                : "border-transparent text-muted hover:text-foreground",
             )}
           >
-            {m.emoji} {m.label}
+            {m.label}
           </button>
         ))}
       </div>
@@ -124,10 +125,10 @@ export function CounterfactualModal({
       {errored[mode] && !loading && (
         <div className="space-y-3">
           <Notice tone="warn" title="AI 시뮬레이션 대기 중">
-            LLM 키가 설정되면 “그때 다른 말을 했다면” 시뮬레이션이 활성화됩니다. 그
-            전까지는 실제 대화와 로컬 분석을 확인할 수 있어요.
+            LLM 키가 설정되면 “그때 다른 말을 했다면” 시뮬레이션이 활성화됩니다.
           </Notice>
           <button
+            type="button"
             onClick={retry}
             className="text-sm text-accent transition-colors hover:text-foreground"
           >
@@ -138,37 +139,57 @@ export function CounterfactualModal({
 
       {!loading && !errored[mode] && current && (
         <div className="space-y-5">
-          {/* line swap */}
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-xl border border-danger/30 bg-danger/5 p-3">
-              <p className="mb-1 text-xs font-semibold text-danger">실제로 한 말</p>
-              <p className="text-sm text-foreground">“{current.original_line}”</p>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="rounded-2xl border border-danger/30 bg-danger/5 p-4">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-danger">
+                원래 우주
+              </p>
+              <div className="kakao-bg rounded-xl">
+                <div className="kchat">
+                  <div className="krow krow--me">
+                    <span className="kname">{me}</span>
+                    <div className="kbubble kbubble--me kbubble--danger">
+                      {current.original_line}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p className="mt-3 text-xs text-muted">실제로 했던 선택</p>
             </div>
-            <div className="rounded-xl border border-ok/30 bg-ok/5 p-3">
-              <p className="mb-1 text-xs font-semibold text-ok">이렇게 말했더라면</p>
-              <p className="text-sm text-foreground">“{current.suggested_line}”</p>
+
+            <div className="rounded-2xl border border-ok/30 bg-ok/5 p-4">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-ok">
+                평행우주
+              </p>
+              <div className="kakao-bg rounded-xl">
+                <div className="kchat">
+                  <div className="krow krow--me">
+                    <span className="kname">{me}</span>
+                    <div className="kbubble kbubble--me">{current.suggested_line}</div>
+                  </div>
+                </div>
+              </div>
+              {current.rationale && (
+                <p className="mt-3 text-sm text-muted">{current.rationale}</p>
+              )}
             </div>
           </div>
-
-          {current.rationale && (
-            <div className="rounded-xl border border-border bg-surface-2/60 p-3 text-sm text-muted">
-              💬 {current.rationale}
-            </div>
-          )}
 
           {current.simulated_timeline.length > 0 && (
             <div>
               <p className="mb-2 text-sm font-semibold text-foreground">
-                이어졌을 대화
+                이어졌을 대화 · {them}과의 스레드
               </p>
               <KakaoThread rows={cfTurnsToRows(current.simulated_timeline, me)} />
             </div>
           )}
 
           {current.outcome_delta && (
-            <div className="rounded-2xl bg-gradient-to-r from-accent/20 to-accent-2/20 p-4 text-center">
-              <p className="text-xs uppercase tracking-wide text-muted">예상 결말</p>
-              <p className="mt-1 text-base font-semibold text-foreground">
+            <div className="rounded-2xl border border-accent/30 bg-gradient-to-r from-accent/15 to-accent-2/15 p-5 text-center">
+              <p className="text-xs font-medium uppercase tracking-widest text-muted">
+                예상 결말
+              </p>
+              <p className="mt-2 text-lg font-semibold text-foreground">
                 {current.outcome_delta}
               </p>
             </div>
