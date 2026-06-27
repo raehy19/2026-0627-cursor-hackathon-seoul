@@ -1,20 +1,31 @@
 # Current State / Session Recovery
 
 Last updated:
-- 2026-06-14
+- 2026-06-27
 
 ## Current Phase
-- Phase 0. Documentation starter baseline + harness hardening pass
-- 2026-06-14: alignment pass against 2026 agent conventions + real-project patterns
+- Phase 1. Implementation started — "What if…?" KakaoTalk analyzer (hackathon, 3h build).
+- Product direction locked via the PRD; see `docs/project/product-brief.md`.
+- App lives in `web/` (Next.js 16 App Router, src/). Root `docs/` keeps the governance harness.
 
-## Repository Status
-- Created from the documentation starter
-- Git-initialized on `main`
-- No application code exists yet
-- Product requirements are still undefined
-- Operating-document baseline is in place
-- Verification automation (lefthook + markdownlint + lychee + gitleaks + GitHub Actions) configured but not yet installed locally
-- `AGENTS.md` is now the canonical entry; `CLAUDE.md` and `.cursor/rules/00-entry.mdc` are thin pointers
+## What is being built (2026-06-27)
+- "What if…?" — upload a KakaoTalk export → local stats + LLM analysis. Two modes by participant count: 1:1 (회고형 + counterfactual) and group (페르소나 + 단톡방 시뮬).
+- No DB. IndexedDB local only. Thin `/api/llm` proxy to OpenRouter free models. Privacy = feature.
+- Stack: Next.js 16, React 19, Tailwind v4, papaparse, idb-keyval, recharts. Deploy target Vercel (root dir `web`).
+
+## Build status (2026-06-27)
+- Done: scaffold (`web/`), deps installed, shared contracts (`web/src/lib/types.ts`), skeletons, `globals.css` (kakao bubbles + theme), `layout.tsx`, `.env.example`/`.env.local` (key empty — user fills `OPENROUTER_API_KEY`).
+- Validated all 3 real sample files at repo root: CSV BOM, U+202F separator in txt, 4,414 records != 4,484 lines, group=5 people, 1:1=[정래현, 서연이].
+- In progress (parallel agents): A = parser+stats (`lib/parser`,`lib/stats`); B = LLM (`app/api/llm`,`lib/llm`); C = UI+store (`page.tsx`,`components`,`lib/store`).
+- Next: integrate, `next build`, test against real files, cache one demo analysis.
+
+## Repository Status (2026-06-27)
+- Application code now lives under `web/` (Next.js). Governance harness stays at root.
+- Git-initialized on `master`. Verification hooks installed locally (`lefthook install`).
+- `AGENTS.md` is the canonical entry; `CLAUDE.md` and `.cursor/rules/00-entry.mdc` are thin pointers.
+
+## History (pre-implementation harness work)
+- Created from the documentation starter; operating-document baseline in place.
 
 ## Completed in the 2026-06-14 pass
 - Fixed the Claude Code import gap: `CLAUDE.md` now uses native `@AGENTS.md` + `@docs/agent/SESSION_START.md` imports so canonical rules actually load into context (a Markdown link does not auto-load)
