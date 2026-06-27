@@ -1,56 +1,46 @@
 # Prioritized TODO Plan
 
-## P0. Needed now
-- Lock the product problem statement into one sentence
-- Define the primary target user
-- Define MVP in-scope and out-of-scope items
-- Select three core user flows
-- Decide Git initialization and the default branch strategy
-- Decide the repository license or confirm private/unlicensed status
+Living plan for the "What if…?" build. Canonical spec: [prd-what-if.md](../project/prd-what-if.md).
+Drift rule: if the plan changes, update the PRD/this doc **first**, commit, then code.
 
-## P1. Needed right after product definition
-- Update the product brief with real content
-- Expand the core E2E scenarios
-- Scaffold the first three feature specs under `docs/specs/`
-- Draft the initial architecture notes
-- Identify the first ADR candidates (especially platform and bootstrap choice)
-- Create an implementation-readiness checklist
+## Status legend
 
-## P2. Needed before implementation starts
-- Decide the tech stack and deployment target
-- Switch `release-please-config.json` `release-type` from `simple` to the chosen language
-- Define quality gates (test, lint, type, e2e)
-- Draft the testing strategy
-- Define the minimum operations and observability baseline
-- Verify `lefthook` + `gitleaks` + `lychee` + `markdownlint` are installed for every contributor
+- [x] done · [~] in progress · [ ] not started
 
-## P3. Later quality improvements
-- Decide whether to split out a dedicated risk register
-- Review possible automation for doc-maintenance flows (auto `/checkpoint`, auto `SESSION_START` refresh)
-- Trim or extend starter defaults for the actual stack
-- Add `commitlint` (npm) once a Node toolchain exists, replacing the regex `commit-msg` hook
+## P0 — demo-critical build (traced to PRD)
 
-## Done in the 2026-06-14 harness pass
-- Claude Code `@import` fix in `CLAUDE.md` (canonical rules now load into context)
-- Spec → tasks bridge: `tasks-template.md` + `/spec-tasks` command
-- Explicit Definition of Done in `AGENTS.md`
-- Context-engineering + external-memory/resume rules in `WORKFLOW.md`
-- Enforced secret-file deny in `.claude/settings.json` + `.mcp.json.example`
-- Browser/ports lane registry upgrade
+- [x] Scaffold `web/` (Next.js 16, Tailwind v4) + deps (papaparse, idb-keyval, recharts) — PRD §10
+- [x] Shared contracts `web/src/lib/types.ts` (all schemas) — PRD §4.5, §7, §5B, §8
+- [x] Validate 3 real samples (BOM, U+202F, record-count, participants) — PRD §4, §11
+- [~] Parser: CSV + android/ios/pc txt, detect, N-person, system/media — PRD §4 (Agent A)
+- [~] Local stats engine: latency/density/sessions/risk score — PRD §5 (Agent A)
+- [~] `/api/llm` proxy + free-model fallback + defensive JSON — PRD §3, §6 (Agent B)
+- [~] 1:1 pipeline: MAP→REDUCE + counterfactual — PRD §6, §7 (Agent B)
+- [~] Group pipeline: persona extraction + group sim — PRD §5B (Agent B)
+- [~] UI: upload, me-select, dashboard, timeline, kakao bubbles, modals, history — PRD §9 (Agent C)
+- [~] IndexedDB save/restore — PRD §8 (Agent C)
+- [ ] Integrate + `next build` green + E2E test against the 3 real files
+- [ ] Cache one demo analysis in IndexedDB — PRD §6, §10 step 5
 
-## Done in the harness pass (2026-05-03)
-- AGENTS.md canonicalization + thin pointers
-- Verification automation (lefthook / markdownlint / lychee / gitleaks / Actions)
-- SESSION_START snapshot
-- Slash commands
-- Specs directory + templates
-- Approval-queue lifecycle
-- Conventional Commits + release-please
-- Quick-start (`degit`) guidance
-- Learnings directory
-- Secrets policy + MCP matrix
+## P1 — if time remains (PRD §2 P1)
 
-## Current Notes
-- Most P0 items still depend on user input or approval.
-- Until then, safe work means maintaining the operating docs and clarifying scope.
-- Replace generic placeholders with project-specific facts as soon as they are known.
+- [ ] Timeline polish (emotion/density lines + clickable markers)
+- [ ] Shareable result card (image download)
+- [ ] "safe vs chaos" branching sim variants
+- [ ] Vercel deploy (root dir `web`, `OPENROUTER_API_KEY` env)
+
+## User action required
+
+- [ ] Put a real key in `web/.env.local` → `OPENROUTER_API_KEY=` (LLM features off until then;
+      local stats/timeline/kakao browsing still work without it)
+
+## Drift-control discipline (this session)
+
+- Commit per logical task; keep messages Conventional Commits.
+- Code must conform to the PRD; on any plan change, edit the doc first and commit before code.
+- Keep `current-state.md` updated at each checkpoint.
+
+## Done (harness, pre-implementation)
+
+- AGENTS.md canonical entry + thin pointers; verification automation (lefthook/markdownlint/lychee/gitleaks/Actions).
+- SESSION_START snapshot, slash commands, specs dir + templates, approval-queue lifecycle, Conventional Commits + release-please, learnings dir, secrets policy.
