@@ -11,7 +11,9 @@
     "seed-public-demo": "tsx scripts/seed-public-demo.ts",
     "generate-sample": "tsx ../data/chat-exports/scripts/generate-live-sample.ts",
     "seed-sample": "tsx ../data/chat-exports/scripts/seed-sample.ts",
-    "sample:all": "npm run generate-sample && npm run seed-sample"
+    "sample:all": "npm run generate-sample && npm run seed-sample",
+    "capture-logo": "node scripts/capture-logo.mjs",
+    "generate-brand-assets": "python3 scripts/generate-brand-assets.py"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
@@ -33,6 +35,7 @@
     "@types/three": "^0.185.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "playwright": "^1.49.1",
     "tailwindcss": "^4",
     "tsx": "^4.20.3",
     "typescript": "^5"

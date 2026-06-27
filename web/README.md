@@ -19,6 +19,7 @@ npm run dev                  # 기본 :3000, 발표 시 -p 3001
 |------|------|
 | `OPENROUTER_API_KEY` | Vercel 서버 env — 공유 무료 분석 (선택) |
 | `NEXT_PUBLIC_MOCK_LLM` | Production: `false` 권장 |
+| `NEXT_PUBLIC_SITE_URL` | OG/메타데이터 canonical URL (Production 권장) |
 | `LLM_RATE_LIMIT_SERVER_PER_MIN` | IP당 분당 한도 (기본 24) |
 
 서버 키가 없거나 실패하면 앱에서 **내 OpenRouter 키**를 입력·검증(`GET/POST /api/llm/health`) 후 localStorage에 저장해 분석합니다.
@@ -40,6 +41,8 @@ npm run dev                  # 기본 :3000, 발표 시 -p 3001
 | `npm run seed-public-demo` | **공개용** fictional `public/sample/analysis.json` 생성 |
 | `npm run generate-sample` | **로컬 전용** `data/chat-exports/` (gitignore) |
 | `npm run seed-sample` | **로컬 전용** `data/chat-exports/sample-analysis.json` |
+| `npm run capture-logo` | 3D 히어로에서 `public/logo.png` 캡처 (prod 서버 필요) |
+| `npm run generate-brand-assets` | logo → favicon · OG · PWA 아이콘 생성 |
 
 ## 로컬 카톡 export
 
