@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0b0b12;
+  --surface: #14141f;
+  --surface-2: #1c1c2b;
+  --foreground: #ececf2;
+  --muted: #9a9ab0;
+  --border: #2a2a3d;
+  --accent: #7c5cff;
+  --accent-2: #ff5c8a;
+  --danger: #ff4d4d;
+  --warn: #ffb020;
+  --ok: #36d399;
+
+  /* KakaoTalk chat surface */
+  --kakao-bg: #b2c7da;
+  --kbubble-me: #fee500;
+  --kbubble-me-text: #181600;
+  --kbubble-them: #ffffff;
+  --kbubble-them-text: #1a1a1a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-danger: var(--danger);
+  --color-warn: var(--warn);
+  --color-ok: var(--ok);
+  --font-sans: var(--font-geist-sans), "Apple SD Gothic Neo", "Pretendard",
+    system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ------------------------------------------------------------------ */
+/* KakaoTalk chat bubbles — reused across upload preview, dashboard,   */
+/* counterfactual modal, and group sim. (PRD §9)                       */
+/* ------------------------------------------------------------------ */
+.kakao-bg {
+  background: var(--kakao-bg);
+  padding: 16px 12px;
+}
+
+.kchat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.krow {
+  display: flex;
+  flex-direction: column;
+  max-width: 78%;
+}
+.krow--me {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+.krow--them {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
+.kname {
+  font-size: 12px;
+  color: #2b3a4a;
+  margin: 2px 4px;
+}
+
+.kbubble {
+  position: relative;
+  padding: 8px 11px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
+}
+.kbubble--me {
+  background: var(--kbubble-me);
+  color: var(--kbubble-me-text);
+  border-top-right-radius: 4px;
+}
+.kbubble--them {
+  background: var(--kbubble-them);
+  color: var(--kbubble-them-text);
+  border-top-left-radius: 4px;
+}
+
+.ktime {
+  font-size: 10px;
+  color: #3d4d5c;
+  margin: 0 4px;
+}
+
+.ksys {
+  align-self: center;
+  background: rgba(0, 0, 0, 0.18);
+  color: #f2f6fb;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.kbubble--danger {
+  outline: 2px solid var(--danger);
+  outline-offset: 1px;
+}
+
+/* utility surfaces for the app shell */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--surface-2);
+  border-radius: 999px;
+}
