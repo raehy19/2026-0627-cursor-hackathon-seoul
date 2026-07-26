@@ -30,6 +30,22 @@ pre-commit:
           exit 1
         fi
 
+    # Entry files load into every agent session, and past roughly 200 lines added
+    # instructions start crowding out the ones already there. This is a soft
+    # target, not a correctness boundary — it warns and never blocks a commit.
+    entry-file-size:
+      glob: "{AGENTS.md,CLAUDE.md,.cursor/rules/*.mdc}"
+      run: |
+        target=200
+        for f in {staged_files}; do
+          lines=$(wc -l < "$f" | tr -d ' ')
+          if [ "$lines" -gt "$target" ]; then
+            echo "[lefthook] note: $f is $lines lines (soft target $target)."
+            echo "  Entry files load every session. Consider moving detail into docs/."
+          fi
+        done
+        exit 0
+
 commit-msg:
   commands:
     conventional-commit:
